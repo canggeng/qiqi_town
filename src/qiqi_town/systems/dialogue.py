@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from qiqi_town.core.conditions import EffectContext, apply_effects, evaluate_condition
 from qiqi_town.core.state import GameState

@@ -25,6 +25,20 @@ class TownScene:
     player_start: tuple[float, float] = (0.0, -8.0)
     interactables: list[dict] = field(default_factory=list)
 
+    def height_at(self, x: float, y: float) -> float:
+        return town_height(x, y)
+
+
+def town_height(x: float, y: float) -> float:
+    """地面高度：南侧平坦，北侧沿步道缓慢上升。"""
+    if y < 15.0:
+        return 0.0
+    if y <= 30.0 and abs(x) <= 2.6:
+        return min(6.0, (y - 15.0) / 15.0 * 6.0)
+    if y > 30.0 and abs(x) <= 4.2:
+        return 6.0
+    return 0.0
+
 
 def build_town(parent: NodePath) -> TownScene:
     root = parent.attachNewNode("town")
@@ -79,6 +93,17 @@ def build_town(parent: NodePath) -> TownScene:
     _build_fountain(root, (0.0, 0.0))
     circles.append((0.0, 0.0, 2.25))
 
+    # 公园与游乐场。
+    _build_park(root, (18.0, -14.0))
+    circles.append((18.0, -14.0, 3.6))
+    _build_playground(root, (-20.0, -14.0))
+
+    # 通往北侧山道的路。
+    meshkit.add_box(root, "path_mountain", (0, 9.0, 0.018), (4.2, 14.0, 0.02), PALETTE["path"])
+    _build_mountain_trail(root)
+    # 山道两侧不可走。
+    blockers.extend([])
+
     # 树、长椅、花。
     tree_positions = [
         (-20.0, -8.0, 1.0),
@@ -106,7 +131,9 @@ def build_town(parent: NodePath) -> TownScene:
 
     # 远处山体。
     for x, y, h, color in [
-        (-25.0, 46.0, 20.0, (0.42, 0.57, 0.46, 1.0)),
+        (-12.0, 30.0, 16.0, (0.42, 0.57, 0.46, 1.0)),
+        (12.0, 32.0, 18.0, (0.35, 0.50, 0.43, 1.0)),
+        (-26.0, 46.0, 20.0, (0.42, 0.57, 0.46, 1.0)),
         (2.0, 52.0, 26.0, (0.35, 0.50, 0.43, 1.0)),
         (27.0, 47.0, 18.0, (0.45, 0.59, 0.48, 1.0)),
     ]:
@@ -114,7 +141,7 @@ def build_town(parent: NodePath) -> TownScene:
             root,
             "mountain",
             (x, y, 0),
-            12.0,
+            12.0 if y < 40 else 14.0,
             0.0,
             h,
             color,
@@ -222,6 +249,94 @@ def _build_house(
     meshkit.add_box(group, "chimney", (x + w * 0.28, y + d * 0.2, 5.2), (0.6, 0.6, 1.6), PALETTE["stone"])
 
 
+def _build_park(root: NodePath, center: tuple[float, float]) -> None:
+    x, y = center
+    group = root.attachNewNode("park")
+    meshkit.add_disc(group, "park_lawn", (x, y, 0.012), 9.0, (0.63, 0.82, 0.56, 1.0), segments=40)
+    # 池塘
+    meshkit.add_cylinder(group, "pond_rim", (x, y, 0.02), 3.8, 3.8, 0.22, PALETTE["stone"], segments=36)
+    meshkit.add_disc(group, "pond_water", (x, y, 0.25), 3.45, PALETTE["water"], segments=36)
+    for i in range(8):
+        angle = i * math.pi / 4
+        px = x + math.cos(angle) * 3.9
+        py = y + math.sin(angle) * 3.9
+        meshkit.add_sphere(group, "reed", (px, py, 0.55), 0.035, PALETTE["leaf"], rings=4, segments=6)
+        meshkit.add_box(group, "reed_leaf", (px, py, 0.85), (0.05, 0.28, 0.4), PALETTE["leaf_light"])
+    # 鸭子一家
+    for dx, dy in [(-1.8, -2.4), (0.2, -3.0), (1.8, -2.1)]:
+        duck = group.attachNewNode("duck")
+        meshkit.add_sphere(duck, "duck_body", (x + dx, y + dy, 0.45), 0.24, (0.98, 0.95, 0.86, 1.0), rings=8, segments=12, scale=(1.2, 0.9, 0.7))
+        meshkit.add_sphere(duck, "duck_head", (x + dx + 0.18, y + dy, 0.68), 0.14, (0.98, 0.95, 0.86, 1.0), rings=7, segments=10)
+        meshkit.add_box(duck, "duck_beak", (x + dx + 0.33, y + dy, 0.66), (0.16, 0.09, 0.06), PALETTE["honey"])
+    _build_bench(root, (x - 5.0, y + 2.0), 90.0)
+    _build_bench(root, (x + 5.0, y - 1.5), -90.0)
+    _build_tree(root, (x - 7.0, y - 5.0), 0.9)
+    _build_tree(root, (x + 7.0, y + 5.0), 1.0)
+    for i in range(9):
+        angle = i * 1.7
+        px = x + math.cos(angle) * (5.0 + (i % 3) * 0.8)
+        py = y + math.sin(angle) * (5.2 + (i % 2) * 0.8)
+        _build_flower(root, (px, py), i)
+
+
+def _build_playground(root: NodePath, center: tuple[float, float]) -> None:
+    x, y = center
+    group = root.attachNewNode("playground")
+    meshkit.add_disc(group, "sandbox", (x, y, 0.02), 4.6, (0.94, 0.82, 0.59, 1.0), segments=36)
+    meshkit.add_cylinder(group, "sandbox_rim", (x, y, 0.02), 4.75, 4.75, 0.14, PALETTE["wood"], segments=36)
+    # 滑梯：平台、梯子、滑道
+    meshkit.add_box(group, "slide_platform", (x - 1.8, y + 1.2, 1.6), (1.6, 1.6, 0.18), PALETTE["teal"])
+    for lx in (-2.4, -1.2):
+        meshkit.add_box(group, "slide_post", (x + lx, y + 0.6, 0.8), (0.15, 0.15, 1.6), PALETTE["wood_dark"])
+    for i in range(4):
+        meshkit.add_box(group, "ladder_rung", (x - 1.8, y + 0.1 + i * 0.3, 0.35 + i * 0.32), (1.0, 0.08, 0.06), PALETTE["wood"])
+    slide = meshkit.add_box(group, "slide_board", (x - 1.8, y + 2.7, 0.9), (1.2, 3.2, 0.15), PALETTE["honey"])
+    slide.setP(-22)
+    meshkit.add_box(group, "slide_side_l", (x - 2.38, y + 2.7, 1.05), (0.08, 3.2, 0.3), PALETTE["teal"]).setP(-22)
+    meshkit.add_box(group, "slide_side_r", (x - 1.22, y + 2.7, 1.05), (0.08, 3.2, 0.3), PALETTE["teal"]).setP(-22)
+    # 秋千
+    swing_x = x + 2.8
+    swing_y = y - 0.8
+    for sx in (-1.3, 1.3):
+        for sy in (-1.2, 1.2):
+            post = meshkit.add_box(group, "swing_post", (swing_x + sx, swing_y + sy, 1.4), (0.12, 0.12, 2.8), PALETTE["teal"])
+            post.setR(12 if sx < 0 else -12)
+    meshkit.add_box(group, "swing_bar", (swing_x, swing_y, 2.75), (3.0, 0.12, 0.12), PALETTE["teal"])
+    for sx in (-0.55, 0.55):
+        meshkit.add_box(group, "swing_rope", (swing_x + sx, swing_y, 1.7), (0.03, 0.03, 2.1), PALETTE["wood_dark"])
+        meshkit.add_box(group, "swing_seat", (swing_x + sx, swing_y, 0.72), (0.45, 0.22, 0.08), PALETTE["coral"])
+    # 跷跷板
+    meshkit.add_box(group, "seesaw_plank", (x + 2.0, y + 2.8, 0.55), (3.2, 0.25, 0.12), PALETTE["coral"])
+    meshkit.add_box(group, "seesaw_fulcrum", (x + 2.0, y + 2.8, 0.25), (0.4, 0.4, 0.5), PALETTE["stone"])
+    # 沙坑玩具
+    for i in range(4):
+        meshkit.add_box(group, "sand_toy", (x - 3.0 + i * 0.5, y - 2.0, 0.18), (0.25, 0.25, 0.25), [PALETTE["coral"], PALETTE["teal"], PALETTE["honey"], PALETTE["leaf"]][i])
+    _build_bench(root, (x - 6.0, y + 3.0), 90.0)
+
+
+def _build_mountain_trail(root: NodePath) -> None:
+    group = root.attachNewNode("mountain_trail")
+    # 登山步道：视觉台阶 + 侧面扶手。
+    for i in range(16):
+        y = 15.5 + i
+        h = town_height(0.0, y)
+        meshkit.add_box(group, "trail_step", (0, y, h / 2), (4.6, 1.05, max(0.08, h)), PALETTE["path"])
+        if i % 2 == 0:
+            for x in (-2.35, 2.35):
+                meshkit.add_box(group, "trail_post", (x, y, h + 0.45), (0.1, 0.1, 0.9), PALETTE["wood"])
+                meshkit.add_box(group, "trail_rail", (x, y, h + 0.85), (0.08, 2.0, 0.08), PALETTE["wood"])
+    # 山脚指示牌
+    meshkit.add_box(group, "trail_sign_post", (2.8, 14.8, 0.8), (0.12, 0.12, 1.6), PALETTE["wood_dark"])
+    meshkit.add_box(group, "trail_sign", (2.8, 14.8, 1.5), (1.8, 0.12, 0.7), PALETTE["honey"])
+    # 山顶平台与灯柱
+    meshkit.add_box(group, "summit", (0, 32.0, 5.95), (8.5, 6.0, 0.35), PALETTE["stone"])
+    meshkit.add_box(group, "summit_rail_n", (0, 34.8, 6.7), (8.5, 0.1, 0.8), PALETTE["wood"])
+    for x in (-3.8, 3.8):
+        meshkit.add_box(group, "summit_lantern_post", (x, 33.8, 6.8), (0.12, 0.12, 1.4), PALETTE["wood_dark"])
+        meshkit.add_sphere(group, "summit_lantern", (x, 33.8, 7.55), 0.22, PALETTE["lantern"], rings=8, segments=12)
+    _build_bench(root, (0, 33.6), 180.0)
+
+
 def _build_fountain(root: NodePath, center: tuple[float, float]) -> None:
     x, y = center
     group = root.attachNewNode("fountain")
@@ -321,5 +436,17 @@ def _make_nav(
                 wy = -WORLD_HALF + (gy + 0.5) * CELL
                 if math.hypot(wx - cx, wy - cy) <= radius:
                     grid[gy][gx] = False
+
+    # 北侧山体只保留步道与山顶平台可走。
+    for gy in range(cells):
+        wy = -WORLD_HALF + (gy + 0.5) * CELL
+        if wy <= 15.0:
+            continue
+        for gx in range(cells):
+            wx = -WORLD_HALF + (gx + 0.5) * CELL
+            on_trail = wy <= 30.0 and abs(wx) <= 2.6
+            on_summit = 30.0 < wy <= 34.2 and abs(wx) <= 4.2
+            if not (on_trail or on_summit):
+                grid[gy][gx] = False
 
     return NavGrid(grid, origin=(-WORLD_HALF, -WORLD_HALF), cell_size=CELL)

@@ -8,7 +8,7 @@ from __future__ import annotations
 import heapq
 import math
 from collections import deque
-from typing import Iterable
+from collections.abc import Iterable
 
 Point = tuple[float, float]
 
@@ -44,8 +44,8 @@ class NavGrid:
 
     def to_cell(self, point: Point) -> tuple[int, int]:
         return (
-            int(math.floor((point[0] - self.origin[0]) / self.cell_size)),
-            int(math.floor((point[1] - self.origin[1]) / self.cell_size)),
+            math.floor((point[0] - self.origin[0]) / self.cell_size),
+            math.floor((point[1] - self.origin[1]) / self.cell_size),
         )
 
     def to_world(self, cell: tuple[int, int]) -> Point:

@@ -35,14 +35,15 @@ from qiqi_town.config import (
 from qiqi_town.core.clock import GameClock
 from qiqi_town.core.save_repository import SaveError, SaveRepository
 from qiqi_town.core.settings import SettingsRepository
-from qiqi_town.core.state import GameState, MinigameState
+from qiqi_town.core.state import GameState, MinigameState, QuestState
 from qiqi_town.entities.camera_rig import CameraRig
 from qiqi_town.entities.player import PlayerController
-from qiqi_town.paths import app_data_root, build_dir, saves_dir
+from qiqi_town.paths import app_data_root, assets_dir, build_dir, saves_dir
 from qiqi_town.systems.dialogue import DialogueRunner
 from qiqi_town.systems.dialogue_data import load_dialogue_nodes
 from qiqi_town.ui.dialogue import DialogueUi
 from qiqi_town.ui.diary import DiaryUi
+from qiqi_town.ui.ending import EndingUi
 from qiqi_town.ui.minigame import MinigameUi
 from qiqi_town.ui.screens import UiManager
 from qiqi_town.world import meshkit
@@ -90,11 +91,12 @@ class QiqiTownApp(ShowBase):
             **{key: scene.nav for key, scene in self.interiors.items()},
         }
         self.player = PlayerController(self.render, build_qiqi(self.render), self.scene.nav)
+        self.player.height_fn = self.town_scene.height_at
         self.player.set_position(*self.scene.player_start, facing=math.pi)
         self.camera_rig = CameraRig(
             self.cam, distance=7.2, pitch=0.48, sensitivity=self.settings.camera_sensitivity
         )
-        self.camera_rig.update(0.016, self.player.position, 0.0)
+        self.camera_rig.update(0.016, self.player.position, self.player.z)
 
         self._setup_lighting()
         self._setup_marker()
@@ -111,6 +113,7 @@ class QiqiTownApp(ShowBase):
         self._hint_time = 0.0
         self.ui = UiManager(self)
         self.diary_ui = DiaryUi(self)
+        self.ending_ui = EndingUi(self)
         self.ui.show_title()
 
         self.taskMgr.add(self._update, "qiqi_update")
@@ -118,7 +121,9 @@ class QiqiTownApp(ShowBase):
 
     # ---------------------------------------------------------------- setup
     def _load_font(self):
-        for path in SYSTEM_CJK_FONT_CANDIDATES:
+        bundled = assets_dir() / "fonts" / "NotoSansSC-Regular.otf"
+        candidates = [str(bundled), *SYSTEM_CJK_FONT_CANDIDATES]
+        for path in candidates:
             if not Path(path).exists():
                 continue
             try:
@@ -126,7 +131,7 @@ class QiqiTownApp(ShowBase):
                 font = self.loader.loadFont(path_str)
                 if font is not None:
                     return font
-            except Exception:
+            except Exception:  # noqa: BLE001, S112
                 continue
         return None
 
@@ -209,9 +214,31 @@ class QiqiTownApp(ShowBase):
         gu.root.setH(180)
         self.npcs["gu"] = gu
 
-        home = self.interiors["home"]
-        kg = self.interiors["kindergarten"]
-        library = self.interiors["library"]
+        su = build_villager(
+            self.scene.root,
+            name="su",
+            dress_color=(0.92, 0.78, 0.42, 1.0),
+            hair_color=(0.28, 0.19, 0.14, 1.0),
+            height_scale=1.05,
+            hairstyle="bun",
+            accessory="apron",
+        )
+        su.root.setPos(22.0, -10.0, 0.0)
+        su.root.setH(180)
+        self.npcs["su"] = su
+
+        chen = build_villager(
+            self.scene.root,
+            name="chen",
+            dress_color=(0.36, 0.62, 0.58, 1.0),
+            hair_color=(0.18, 0.14, 0.12, 1.0),
+            height_scale=1.0,
+            hairstyle="pigtails",
+            accessory="apron",
+        )
+        chen.root.setPos(-24.0, -10.0, 0.0)
+        chen.root.setH(180)
+        self.npcs["chen"] = chen
 
         self.town_interactables: list[Interactable] = [
             Interactable(
@@ -249,6 +276,33 @@ class QiqiTownApp(ShowBase):
                 lambda: self.enter_interior("library"),
                 radius=2.6,
                 kind="door",
+            ),
+            Interactable(
+                "su",
+                "和苏阿姨说话",
+                (22.0, -10.0, 0.7),
+                (22.0, -11.6),
+                self.talk_su,
+                radius=2.4,
+                kind="npc",
+            ),
+            Interactable(
+                "chen",
+                "和陈阿姨说话",
+                (-24.0, -10.0, 0.7),
+                (-24.0, -11.6),
+                self.talk_chen,
+                radius=2.4,
+                kind="npc",
+            ),
+            Interactable(
+                "summit_view",
+                "在山顶看风景",
+                (0.0, 33.6, 6.9),
+                (0.0, 32.2),
+                self.summit_view,
+                radius=2.6,
+                kind="view",
             ),
         ]
         home_interactables: list[Interactable] = [
@@ -327,7 +381,7 @@ class QiqiTownApp(ShowBase):
             "library": library_interactables,
         }
         self.scene_active_npcs = {
-            "town": [self.npcs["xiaoman"]],
+            "town": [self.npcs["xiaoman"], self.npcs["su"], self.npcs["chen"]],
             "home": [],
             "kindergarten": [self.npcs["lin"]],
             "library": [self.npcs["gu"]],
@@ -348,6 +402,8 @@ class QiqiTownApp(ShowBase):
             self.resume_game()
         elif self.mode == "diary":
             self.close_diary()
+        elif self.mode == "ending":
+            self.finish_ending()
 
     def _on_left_click(self) -> None:
         if self.mode == "dialogue":
@@ -395,13 +451,25 @@ class QiqiTownApp(ShowBase):
         direction = far_world - near_world
         if abs(direction.z) < 1e-6:
             return None
-        t = (0.03 - near_world.z) / direction.z
-        if t <= 0:
+        # 先快速求平面交点，再沿线段采样地形高度；兼容山道斜坡。
+        t_plane = (0.03 - near_world.z) / direction.z
+        if t_plane <= 0:
             return None
-        point = near_world + direction * t
-        if abs(point.x) > WORLD_HALF - 1 or abs(point.y) > WORLD_HALF - 1:
-            return None
-        return point
+        steps = 120
+        for i in range(1, steps + 1):
+            t = i / steps
+            point = near_world + direction * t
+            if abs(point.x) > WORLD_HALF - 1 or abs(point.y) > WORLD_HALF - 1:
+                continue
+            height = self._ground_height(point.x, point.y)
+            if point.z <= height + 0.05:
+                return Point3(point.x, point.y, height)
+        return None
+
+    def _ground_height(self, x: float, y: float) -> float:
+        if self.current_scene_id == "town":
+            return self.town_scene.height_at(x, y)
+        return 0.0
 
     def _on_wheel_up(self) -> None:
         if self.mode == "playing":
@@ -429,17 +497,14 @@ class QiqiTownApp(ShowBase):
             self.player.rig.update(dt, False)
             self.dialogue_ui.update(dt)
             self.hover_ring.hide()
-        elif self.mode == "minigame":
-            self.player.rig.update(dt, False)
-            self.hover_ring.hide()
-        elif self.mode == "diary":
+        elif self.mode in {"minigame", "diary", "ending"}:
             self.player.rig.update(dt, False)
             self.hover_ring.hide()
         else:
             self.player.rig.update(dt, False)
             self.hover_ring.hide()
 
-        self.camera_rig.update(dt, self.player.position, 0.0)
+        self.camera_rig.update(dt, self.player.position, self.player.z)
         for npc in self.active_npcs:
             npc.update(dt, talking=self.mode == "dialogue")
         return Task.cont
@@ -510,7 +575,7 @@ class QiqiTownApp(ShowBase):
             self.hover_ring.setPos(hovered.ground_pos[0], hovered.ground_pos[1], 0.045)
             self.hover_ring.show()
             label = hovered.label
-            if hovered.id == "home_door" and self._day1_complete():
+            if hovered.id == "home_door" and self._daily_complete(self.clock.day):
                 label = "回家睡觉"
             self.ui.hud_hint["text"] = label
         else:
@@ -550,16 +615,37 @@ class QiqiTownApp(ShowBase):
 
     # ---------------------------------------------------------------- dialogue
     def talk_lin(self) -> None:
-        if self._day1_complete():
-            self.start_dialogue("lin_after_1")
-        else:
+        if self.clock.day == 1 and not self._day1_complete():
             self.start_dialogue("lin_intro_1")
+        else:
+            self.start_dialogue("lin_after_1")
 
     def talk_xiaoman(self) -> None:
         self.start_dialogue("xiaoman_intro_1")
 
     def talk_gu(self) -> None:
-        self.start_dialogue("gu_intro_1")
+        if self.clock.day == 2 and not self._daily_complete(2):
+            self.start_dialogue("gu_day2_1")
+        else:
+            self.start_dialogue("gu_intro_1")
+
+    def talk_su(self) -> None:
+        if self.clock.day == 3 and not self._daily_complete(3):
+            self.start_dialogue("su_day3_1")
+        else:
+            self.start_dialogue("su_intro_1")
+
+    def talk_chen(self) -> None:
+        if self.clock.day == 4 and not self._daily_complete(4):
+            self.start_dialogue("chen_day4_1")
+        else:
+            self.start_dialogue("chen_intro_1")
+
+    def summit_view(self) -> None:
+        if self.clock.day == 5 and not self.state.story_complete:
+            self.start_dialogue("summit_day5_1")
+        else:
+            self.start_dialogue("summit_view_1")
 
     def start_dialogue(self, node_id: str) -> None:
         if not self.dialogue_nodes:
@@ -583,8 +669,12 @@ class QiqiTownApp(ShowBase):
         self.clock.paused = False
         self.ui.show_hud()
         self._update_hud()
-        if self._day1_complete() and not self.state.flags.get("day1_reported"):
-            self.state.flags["day1_reported"] = True
+        day = self.clock.day
+        if self._daily_complete(day) and not self.state.flags.get(f"day{day}_reported"):
+            self.state.flags[f"day{day}_reported"] = True
+            if day == 5 and self.state.story_complete:
+                self.show_ending()
+                return
             self.ui.toast("今天的主线完成啦！回家找妈妈睡觉吧。", 3.0)
             self._auto_save()
 
@@ -633,26 +723,43 @@ class QiqiTownApp(ShowBase):
         self._auto_save()
 
     # ---------------------------------------------------------------- quests/day
-    def _day1_complete(self) -> bool:
-        quest = self.state.quests.get("day1_main")
+    def _daily_complete(self, day: int) -> bool:
+        quest = self.state.quests.get(f"day{day}_main")
         return quest is not None and quest.status == "complete"
 
+    def _day1_complete(self) -> bool:
+        return self._daily_complete(1)
+
     def _current_objective(self) -> str:
-        if self.clock.day == 1:
-            if self._day1_complete():
-                return "目标：回家睡觉"
-            return "目标：去幼儿园找林老师"
-        return f"目标：第 {self.clock.day} 天 · 在小镇里自由逛逛"
+        if self.state.story_complete:
+            return "目标：在小镇里自由生活"
+        day = self.clock.day
+        targets = {
+            1: "目标：去幼儿园找林老师",
+            2: "目标：去图书馆找顾爷爷",
+            3: "目标：去公园找苏阿姨",
+            4: "目标：去游乐场找陈阿姨",
+            5: "目标：爬上青禾山，到山顶看灯",
+        }
+        if self._daily_complete(day):
+            return "目标：回家睡觉" if day < 5 else "目标：在山顶看灯会"
+        return targets.get(day, "目标：在小镇里逛逛")
 
     def interact_home(self) -> None:
-        if not self._day1_complete():
-            self.ui.toast("妈妈：今天还有一件事没做完呢，去幼儿园找林老师吧。", 3.0)
+        if not self._daily_complete(self.clock.day):
+            self.ui.toast("妈妈：今天还有一件事没做完呢，先在镇上逛逛吧。", 3.0)
             return
         self.sleep_to_next_day()
 
     def sleep_to_next_day(self) -> None:
         if self.clock.day >= 5:
-            self.ui.toast("第 5 天的山顶灯会内容还在准备中。", 3.0)
+            if self.state.story_complete:
+                self.ui.toast("灯会已经结束啦。可以继续在小镇里逛逛。", 2.6)
+            else:
+                self.ui.toast("今天是灯会，去山顶看灯吧。", 2.6)
+            return
+        if not self._daily_complete(self.clock.day):
+            self.ui.toast("今天还有一件事没做完呢。先在镇上逛逛，或者再去和小镇居民说说话。", 3.2)
             return
         self.clock.advance_day()
         self.state.day = self.clock.day
@@ -671,6 +778,25 @@ class QiqiTownApp(ShowBase):
         self._sync_state_from_world()
         self._auto_save()
         self.ui.toast(f"第 {self.clock.day} 天开始了。", 2.0)
+
+    def show_ending(self) -> None:
+        self.mode = "ending"
+        self.clock.paused = True
+        self.player.stop()
+        self._pending_interaction = None
+        self.hover_ring.hide()
+        self.ui.hide_all()
+        self.ending_ui.show()
+        self._sync_state_from_world()
+        self._auto_save()
+
+    def finish_ending(self) -> None:
+        self.ending_ui.hide()
+        self.mode = "playing"
+        self.clock.paused = False
+        self.ui.show_hud()
+        self._update_hud()
+        self._auto_save()
 
     # ---------------------------------------------------------------- hud
     def _update_hud(self) -> None:
@@ -699,6 +825,9 @@ class QiqiTownApp(ShowBase):
         self.current_scene_id = scene_id
         self.scene = self.town_scene if scene_id == "town" else self.interiors[scene_id]
         self.player.nav = self.scene_navs[scene_id]
+        self.player.height_fn = (
+            self.town_scene.height_at if scene_id == "town" else (lambda x, y: 0.0)
+        )
         if position is None:
             if scene_id == "town":
                 position = self.town_scene.player_start
@@ -717,7 +846,7 @@ class QiqiTownApp(ShowBase):
         self._hovered = None
         if hasattr(self, "hover_ring"):
             self.hover_ring.hide()
-        self.camera_rig.update(0.016, self.player.position, 0.0)
+        self.camera_rig.snap_to(self.player.position, self.player.z)
         self._update_hud()
 
     def enter_interior(self, scene_id: str) -> None:
@@ -974,6 +1103,31 @@ class QiqiTownApp(ShowBase):
             self.win.getScreenshot().write(
                 Filename.fromOsSpecific(str(build_dir() / "smoke.png"))
             )
+            self._activate_scene("town", (18.0, -22.0), 0.0)
+            for _ in range(2):
+                self.taskMgr.step()
+            self.graphicsEngine.renderFrame()
+            self.win.getScreenshot().write(
+                Filename.fromOsSpecific(str(build_dir() / "park.png"))
+            )
+            self._activate_scene("town", (-20.0, -22.0), 0.0)
+            for _ in range(2):
+                self.taskMgr.step()
+            self.graphicsEngine.renderFrame()
+            self.win.getScreenshot().write(
+                Filename.fromOsSpecific(str(build_dir() / "playground.png"))
+            )
+            self._activate_scene("town", (0.0, 30.5), 0.0)
+            self.camera_rig.yaw = math.pi
+            self.camera_rig.update(0.016, self.player.position, self.player.z)
+            for _ in range(2):
+                self.taskMgr.step()
+            self.graphicsEngine.renderFrame()
+            self.win.getScreenshot().write(
+                Filename.fromOsSpecific(str(build_dir() / "summit.png"))
+            )
+            self.camera_rig.yaw = 0.0
+            self._activate_scene("town", self.town_scene.player_start, math.pi)
             self.enter_interior("kindergarten")
             for _ in range(3):
                 self.taskMgr.step()
@@ -1074,6 +1228,29 @@ class QiqiTownApp(ShowBase):
             self.graphicsEngine.renderFrame()
             self.win.getScreenshot().write(
                 Filename.fromOsSpecific(str(build_dir() / "settings.png"))
+            )
+            # 第五天结局界面。
+            self.clock.day = 5
+            self.clock.minutes = 18 * 60
+            self.state.day = 5
+            self.state.story_complete = False
+            self.state.quests["day5_main"] = QuestState(step=0, status="active")
+            self._activate_scene("town", (0.0, 30.5), 0.0)
+            self.mode = "playing"
+            self.ui.show_hud()
+            self.settings.text_speed = 999.0
+            self.start_dialogue("summit_day5_1")
+            self.dialogue_ui.update(2.0)
+            self.dialogue_ui._choose(0)
+            self.dialogue_ui.update(2.0)
+            self.dialogue_ui.handle_click()
+            self.dialogue_ui.update(2.0)
+            self.dialogue_ui.handle_click()
+            for _ in range(2):
+                self.taskMgr.step()
+            self.graphicsEngine.renderFrame()
+            self.win.getScreenshot().write(
+                Filename.fromOsSpecific(str(build_dir() / "ending.png"))
             )
         except Exception as exc:  # noqa: BLE001
             print(f"SMOKE FAILED: {exc}", file=sys.stderr)

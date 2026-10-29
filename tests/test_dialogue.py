@@ -2,7 +2,6 @@ from qiqi_town.core.conditions import EffectContext
 from qiqi_town.core.state import GameState
 from qiqi_town.systems.dialogue import DialogueRunner
 
-
 RAW = {
     "start": {
         "speaker": "林老师",

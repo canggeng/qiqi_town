@@ -35,7 +35,11 @@ Write-Host "smoke marker: $Marker"
 
 Write-Host "== zip =="
 $Version = "0.1.0"
+$DistDir = Join-Path $Root "dist\QiqiTown"
+Copy-Item (Join-Path $Root "README.md") (Join-Path $DistDir "README.md") -Force
+Copy-Item (Join-Path $Root "CREDITS.md") (Join-Path $DistDir "CREDITS.md") -Force
+Copy-Item (Join-Path $Root "src\qiqi_town\assets\fonts\OFL-NotoSansSC.txt") (Join-Path $DistDir "FONT-LICENSE-NotoSansSC.txt") -Force
 $Zip = Join-Path $Root "dist\QiqiTown_v${Version}_windows_x64.zip"
 if (Test-Path $Zip) { Remove-Item $Zip -Force }
-Compress-Archive -Path (Join-Path $Root "dist\QiqiTown\*") -DestinationPath $Zip
+Compress-Archive -Path (Join-Path $DistDir "*") -DestinationPath $Zip
 Write-Host "Done: $Zip"

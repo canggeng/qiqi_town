@@ -8,13 +8,14 @@
 
 ## 字体
 
-当前开发版使用 Windows 系统自带 `SimHei`（黑体）读取中文：
+游戏随包使用 **Noto Sans SC Regular**（SIL Open Font License 1.1）：
 
-- 文件：`C:/Windows/Fonts/simhei.ttf`
-- 用途：开发期界面/对话显示。
-- 发布前必须替换为可再分发的 OFL 字体（目标：Noto Sans SC 或 LXGW WenKai），并把授权文本加入本文件。
+- 文件：`src/qiqi_town/assets/fonts/NotoSansSC-Regular.otf`
+- 来源：Noto CJK（通过 PyPI 数据包 `pylopdf-fonts-zh-cn` 获取的 OFL 版本）
+- 授权文本：`src/qiqi_town/assets/fonts/OFL-NotoSansSC.txt`
+- 用途：界面、对话、标题显示。
 
-> 当前 exe 尚未附带字体文件，跨机器运行依赖目标 Windows 安装中文字体。这是首版待办项。
+开发期会优先加载随包字体；若缺失则回退到 Windows 系统 `SimHei`。发布包必须确认字体文件被包含。
 
 ## 音频
 

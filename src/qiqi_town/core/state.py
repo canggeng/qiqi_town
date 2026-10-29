@@ -152,7 +152,7 @@ class GameState:
     @classmethod
     def from_dict(cls, raw: Any) -> GameState:
         if not isinstance(raw, dict):
-            raise ValueError("state 必须是一个对象")
+            raise TypeError("state 必须是一个对象")
         state = cls()
         state.schema_version = _safe_int(raw.get("schema_version"), SAVE_SCHEMA_VERSION)
         state.day = min(5, max(1, _safe_int(raw.get("day"), 1)))

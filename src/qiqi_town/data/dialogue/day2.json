@@ -1,0 +1,39 @@
+{
+  "gu_day2_1": {
+    "speaker": "顾爷爷",
+    "text": "淇淇，你来得正好。那本旧书里夹着一张青禾山的地图，可其中一页不见了。",
+    "choices": [
+      {
+        "text": "我来帮您找。",
+        "next": "gu_day2_2a",
+        "effects": [{"type": "add_friendship", "npc": "gu", "amount": 1}]
+      },
+      {
+        "text": "先去问问周爷爷？",
+        "next": "gu_day2_2b"
+      }
+    ]
+  },
+  "gu_day2_2a": {
+    "speaker": "顾爷爷",
+    "text": "好孩子。书架最下面一层有几本旧画册，说不定夹在里面。",
+    "next": "gu_day2_3"
+  },
+  "gu_day2_2b": {
+    "speaker": "顾爷爷",
+    "text": "也好。周爷爷在山脚守林，他一定认得那几条小路。",
+    "next": "gu_day2_3"
+  },
+  "gu_day2_3": {
+    "speaker": "顾爷爷",
+    "text": "找到了！原来在这里。地图上画着山顶的观景台，灯会那天肯定很漂亮。",
+    "effects": [
+      {"type": "set_flag", "key": "day2_done", "value": true},
+      {"type": "set_quest_status", "quest": "day2_main", "status": "complete"},
+      {"type": "advance_quest", "quest": "day2_main", "step": 1},
+      {"type": "give_sticker", "id": "sticker_map"},
+      {"type": "add_journal", "id": "day2_map"},
+      {"type": "add_inventory", "id": "old_map"}
+    ]
+  }
+}

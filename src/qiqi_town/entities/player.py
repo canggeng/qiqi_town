@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 
-from panda3d.core import NodePath, Vec3
+from panda3d.core import NodePath
 
 from qiqi_town.world.character_builder import CharacterRig
 from qiqi_town.world.nav import NavGrid, Point
@@ -36,6 +36,10 @@ class PlayerController:
     @property
     def position(self) -> Point:
         return self._position
+
+    @property
+    def z(self) -> float:
+        return float(self.height_fn(*self._position))
 
     @property
     def moving(self) -> bool:

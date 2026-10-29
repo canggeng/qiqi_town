@@ -1,0 +1,42 @@
+{
+  "chen_day4_1": {
+    "speaker": "陈阿姨",
+    "text": "淇淇，小满和阿泽刚才在秋千那边闹别扭了。一个想荡高，一个怕她摔着。",
+    "choices": [
+      {
+        "text": "我去听听他们怎么说。",
+        "next": "chen_day4_2a",
+        "effects": [
+          {"type": "add_friendship", "npc": "xiaoman", "amount": 1},
+          {"type": "add_friendship", "npc": "aze", "amount": 1}
+        ]
+      },
+      {
+        "text": "先帮陈阿姨收拾气球。",
+        "next": "chen_day4_2b",
+        "effects": [{"type": "add_friendship", "npc": "chen", "amount": 1}]
+      }
+    ]
+  },
+  "chen_day4_2a": {
+    "speaker": "陈阿姨",
+    "text": "对，先听两边说。你这个小调解员，比大人还稳当。",
+    "next": "chen_day4_3"
+  },
+  "chen_day4_2b": {
+    "speaker": "陈阿姨",
+    "text": "谢谢你。等会儿再过去，给他们一点时间。",
+    "next": "chen_day4_3"
+  },
+  "chen_day4_3": {
+    "speaker": "陈阿姨",
+    "text": "看，他们又一起玩起来了。朋友之间就是这样，说开了就好。",
+    "effects": [
+      {"type": "set_flag", "key": "day4_done", "value": true},
+      {"type": "set_quest_status", "quest": "day4_main", "status": "complete"},
+      {"type": "advance_quest", "quest": "day4_main", "step": 1},
+      {"type": "give_sticker", "id": "sticker_hairpin"},
+      {"type": "add_journal", "id": "day4_promise"}
+    ]
+  }
+}

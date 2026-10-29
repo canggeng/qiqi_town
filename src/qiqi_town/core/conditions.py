@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from qiqi_town.core.state import GameState, QuestState
 
@@ -56,9 +57,7 @@ def evaluate_condition(condition: Any, state: GameState) -> bool:
             return False
         if "lte" in spec and value > int(spec["lte"]):
             return False
-        if "eq" in spec and value != int(spec["eq"]):
-            return False
-        return True
+        return not ("eq" in spec and value != int(spec["eq"]))
 
     if "sticker" in condition:
         return str(condition["sticker"]) in state.stickers
@@ -112,6 +111,9 @@ def apply_effect(effect: Any, state: GameState, context: EffectContext | None = 
         item = str(effect.get("id", ""))
         if item in state.inventory:
             state.inventory.remove(item)
+        return True
+    if kind == "set_story_complete":
+        state.story_complete = True
         return True
 
     if context and context.hooks and kind in context.hooks:

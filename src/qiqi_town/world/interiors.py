@@ -63,7 +63,7 @@ def build_kindergarten(parent: NodePath) -> InteriorScene:
     for i, x in enumerate((-3.2, 0.0, 3.2)):
         _table(root, (x, 1.4), (2.2, 1.6), height=0.58)
         for dx in (-0.75, 0.75):
-            _chair(root, (x + dx, 0.35), 180 if dx < 0 else 180)
+            _chair(root, (x + dx, 0.35), 180)
         _chair(root, (x, 2.6), 0)
     # 地毯
     meshkit.add_box(root, "rug", (-0.2, -1.6, 0.025), (5.0, 2.6, 0.03), (0.96, 0.77, 0.53, 1.0))

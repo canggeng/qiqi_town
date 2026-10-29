@@ -54,7 +54,15 @@ class CameraRig:
             self._initialized = True
         factor = 1.0 - math.exp(-max(0.0, dt) * 8.0)
         self._smooth_target += (desired - self._smooth_target) * factor
+        self._apply_camera()
 
+    def snap_to(self, target_xy: tuple[float, float], target_z: float) -> None:
+        """场景切换/读档后立即把镜头放到目标附近，避免跨场景漂移。"""
+        self._smooth_target = Vec3(target_xy[0], target_xy[1], target_z + 0.8)
+        self._initialized = True
+        self._apply_camera()
+
+    def _apply_camera(self) -> None:
         horiz = math.cos(self.pitch) * self.distance
         cam_pos = Vec3(
             self._smooth_target.x + math.sin(self.yaw) * horiz,

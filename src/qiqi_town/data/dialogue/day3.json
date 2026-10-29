@@ -1,0 +1,42 @@
+{
+  "su_day3_1": {
+    "speaker": "苏阿姨",
+    "text": "淇淇，今天公园的野餐垫已经铺好啦。你愿意去叫小满和阿泽一起来吗？",
+    "choices": [
+      {
+        "text": "两个都请！",
+        "next": "su_day3_2a",
+        "effects": [
+          {"type": "add_friendship", "npc": "xiaoman", "amount": 1},
+          {"type": "add_friendship", "npc": "aze", "amount": 1}
+        ]
+      },
+      {
+        "text": "先帮您摆好食物。",
+        "next": "su_day3_2b",
+        "effects": [{"type": "add_friendship", "npc": "su", "amount": 1}]
+      }
+    ]
+  },
+  "su_day3_2a": {
+    "speaker": "苏阿姨",
+    "text": "哈哈，那就热闹了。你去游乐场那边喊一声，他们准在。",
+    "next": "su_day3_3"
+  },
+  "su_day3_2b": {
+    "speaker": "苏阿姨",
+    "text": "你总是这么贴心。草莓放在最上面，别让鸭子看见。",
+    "next": "su_day3_3"
+  },
+  "su_day3_3": {
+    "speaker": "苏阿姨",
+    "text": "野餐开始啦！今天的阳光刚刚好，大家都在一起。",
+    "effects": [
+      {"type": "set_flag", "key": "day3_done", "value": true},
+      {"type": "set_quest_status", "quest": "day3_main", "status": "complete"},
+      {"type": "advance_quest", "quest": "day3_main", "step": 1},
+      {"type": "give_sticker", "id": "sticker_picnic"},
+      {"type": "add_journal", "id": "day3_picnic"}
+    ]
+  }
+}

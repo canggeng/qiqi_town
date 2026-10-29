@@ -17,7 +17,6 @@ from panda3d.core import (
     LineSegs,
     NodePath,
     TransparencyAttrib,
-    Vec3,
 )
 
 Color = tuple[float, float, float, float] | tuple[float, float, float]
@@ -33,8 +32,6 @@ def _new_writers(name: str, parent: NodePath) -> tuple[NodePath, GeomVertexData,
     vdata = GeomVertexData(name, GeomVertexFormat.getV3n3c4(), Geom.UHStatic)
     vdata.setNumRows(0)
     vertex = GeomVertexWriter(vdata, "vertex")
-    normal = GeomVertexWriter(vdata, "normal")
-    color = GeomVertexWriter(vdata, "color")
     node = GeomNode(name)
     np = parent.attachNewNode(node)
     return np, vdata, vertex

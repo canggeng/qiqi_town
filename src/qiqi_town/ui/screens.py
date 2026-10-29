@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from direct.gui import DirectGuiGlobals as DGG
 from direct.gui.DirectGui import DirectButton, DirectFrame, DirectSlider
 from direct.gui.OnscreenText import OnscreenText
 from panda3d.core import NodePath, TextNode, TransparencyAttrib
-
-from qiqi_town.config import PALETTE
 
 
 class UiManager:

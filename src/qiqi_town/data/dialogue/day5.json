@@ -1,0 +1,46 @@
+{
+  "summit_day5_1": {
+    "speaker": "淇淇",
+    "text": "山顶的风把红气球的绳子吹得轻轻响。整座青禾镇在脚下亮起来了。",
+    "choices": [
+      {
+        "text": "把愿望系在灯笼旁。",
+        "next": "summit_day5_2a",
+        "effects": [
+          {"type": "set_flag", "key": "wish_lantern", "value": true},
+          {"type": "give_sticker", "id": "sticker_wish"}
+        ]
+      },
+      {
+        "text": "把红气球系在栏杆上，和大家一起看灯。",
+        "next": "summit_day5_2b",
+        "effects": [
+          {"type": "set_flag", "key": "balloon_on_summit", "value": true},
+          {"type": "give_sticker", "id": "sticker_balloon"}
+        ]
+      }
+    ]
+  },
+  "summit_day5_2a": {
+    "speaker": "淇淇",
+    "text": "希望每一个今天，都能像今晚这样亮亮的。",
+    "next": "summit_day5_3"
+  },
+  "summit_day5_2b": {
+    "speaker": "淇淇",
+    "text": "红气球在风里轻轻晃。小满、阿泽、林老师都在笑。",
+    "next": "summit_day5_3"
+  },
+  "summit_day5_3": {
+    "speaker": "淇淇",
+    "text": "灯会的灯笼一盏一盏亮到山脚。这个夏天，我会一直记得。",
+    "effects": [
+      {"type": "set_flag", "key": "day5_done", "value": true},
+      {"type": "set_quest_status", "quest": "day5_main", "status": "complete"},
+      {"type": "advance_quest", "quest": "day5_main", "step": 1},
+      {"type": "set_story_complete"},
+      {"type": "give_sticker", "id": "sticker_night"},
+      {"type": "add_journal", "id": "day5_lantern"}
+    ]
+  }
+}

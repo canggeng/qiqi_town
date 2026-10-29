@@ -9,7 +9,11 @@ dist/
 *.log
 .uv-cache/
 .smoke-data/
+.smoke-data-*/
 .test-tmp/
+.pytest-tmp/
+.tmp/
 .tmp2/
+pytest-cache-files-*/
 docs/reference/*.jpg
 docs/reference/*.jpeg

@@ -123,5 +123,53 @@
   "gu_intro_2": {
     "speaker": "顾爷爷",
     "text": "过两天灯会，山顶的灯笼会把整座小镇照亮的。"
+  },
+  "su_intro_1": {
+    "speaker": "苏阿姨",
+    "text": "淇淇，公园里今天可热闹了。鸭子一家刚吃完面包，正在池塘边排队呢。",
+    "next": "su_intro_2"
+  },
+  "su_intro_2": {
+    "speaker": "苏阿姨",
+    "text": "等灯会那天，我们会在草坪上摆长长的野餐桌。你要来帮忙吗？",
+    "choices": [
+      {
+        "text": "好呀，我来帮忙。",
+        "next": "su_intro_3a",
+        "effects": [
+          {"type": "add_friendship", "npc": "su", "amount": 1}
+        ]
+      },
+      {
+        "text": "我先去游乐场看看。",
+        "next": "su_intro_3b"
+      }
+    ]
+  },
+  "su_intro_3a": {
+    "speaker": "苏阿姨",
+    "text": "那说定了。你负责把草莓洗得亮亮的。"
+  },
+  "su_intro_3b": {
+    "speaker": "苏阿姨",
+    "text": "去吧，陈阿姨那边今天有新气球。"
+  },
+  "chen_intro_1": {
+    "speaker": "陈阿姨",
+    "text": "淇淇，要不要试试秋千？今天风不大，荡起来刚刚好。",
+    "next": "chen_intro_2"
+  },
+  "chen_intro_2": {
+    "speaker": "陈阿姨",
+    "text": "滑梯和跷跷板也都擦干净啦。不过要记住，玩的时候要排队哦。"
+  },
+  "summit_view_1": {
+    "speaker": "淇淇",
+    "text": "从这里往下看，青禾镇像一张铺开的画。灯会的灯笼已经一盏一盏亮起来了。",
+    "next": "summit_view_2"
+  },
+  "summit_view_2": {
+    "speaker": "淇淇",
+    "text": "等灯会那天，我要把红气球也带上来。"
   }
 }

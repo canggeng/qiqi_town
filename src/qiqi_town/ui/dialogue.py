@@ -101,9 +101,7 @@ class DialogueUi:
             self.body_text["text"] = self._full_text[: int(self._shown_chars)]
             if self._shown_chars >= len(self._full_text):
                 self._on_typing_done()
-        if self._shown_chars < len(self._full_text):
-            self.continue_text.hide()
-        elif self._choice_ready:
+        if self._shown_chars < len(self._full_text) or self._choice_ready:
             self.continue_text.hide()
         else:
             self.continue_text.show()
