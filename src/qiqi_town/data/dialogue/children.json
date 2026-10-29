@@ -1,0 +1,62 @@
+{
+  "an_intro_1": {
+    "speaker": "安思宜",
+    "text": "淇淇！你看我的贴纸册，里面有会发光的小星星，还有一只戴帽子的猫。",
+    "choices": [
+      {
+        "text": "给她看我的回忆贴纸。",
+        "next": "an_intro_2a",
+        "effects": [
+          {"type": "add_friendship", "npc": "an", "amount": 1},
+          {"type": "set_flag", "key": "met_an", "value": true}
+        ]
+      },
+      {
+        "text": "问她最喜欢哪一张。",
+        "next": "an_intro_2b",
+        "effects": [
+          {"type": "add_friendship", "npc": "an", "amount": 1},
+          {"type": "set_flag", "key": "met_an", "value": true}
+        ]
+      }
+    ]
+  },
+  "an_intro_2a": {
+    "speaker": "安思宜",
+    "text": "哇，这张形状贴纸好可爱！我们交换一张吧？我下次带小兔子的来。"
+  },
+  "an_intro_2b": {
+    "speaker": "安思宜",
+    "text": "最喜欢这张星星的。因为晚上灯会的时候，星星也会亮起来。"
+  },
+  "shao_intro_1": {
+    "speaker": "邵文星",
+    "text": "淇淇，你见过会变形的机器人吗？我这个可以变成小汽车，还能变成大吊车。",
+    "choices": [
+      {
+        "text": "请他变一次看看。",
+        "next": "shao_intro_2a",
+        "effects": [
+          {"type": "add_friendship", "npc": "shao", "amount": 1},
+          {"type": "set_flag", "key": "met_shao", "value": true}
+        ]
+      },
+      {
+        "text": "问他最喜欢哪个形态。",
+        "next": "shao_intro_2b",
+        "effects": [
+          {"type": "add_friendship", "npc": "shao", "amount": 1},
+          {"type": "set_flag", "key": "met_shao", "value": true}
+        ]
+      }
+    ]
+  },
+  "shao_intro_2a": {
+    "speaker": "邵文星",
+    "text": "看好了——咔嚓、咔嚓，变成小汽车！再变！这次是大吊车。"
+  },
+  "shao_intro_2b": {
+    "speaker": "邵文星",
+    "text": "大吊车！因为它可以把灯会的灯笼吊得高高的。"
+  }
+}

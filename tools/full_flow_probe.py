@@ -51,6 +51,13 @@ for day in range(1, 5):
     if day < 5:
         before = app.clock.day
         app.sleep_to_next_day()
+        assert app.mode == "transition"
+        for _ in range(300):
+            if app.mode == "playing":
+                break
+            app.night_ui.update(0.1)
+            app.taskMgr.step()
+        assert app.mode == "playing", "night transition did not finish"
         assert app.clock.day == before + 1, (before, app.clock.day)
 
 app.clock.day = 5

@@ -146,7 +146,9 @@ class DiaryUi:
             "朋友们：\n"
             f"小满 {friends.get('xiaoman', 0)}/5\n"
             f"林老师 {friends.get('lin', 0)}/5\n"
-            f"顾爷爷 {friends.get('gu', 0)}/5"
+            f"顾爷爷 {friends.get('gu', 0)}/5\n"
+            f"安思宜 {friends.get('an', 0)}/5\n"
+            f"邵文星 {friends.get('shao', 0)}/5"
         )
         self.sticker_count["text"] = f"{len(state.stickers)} / {STICKER_SLOTS}"
         for index, label in enumerate(self.sticker_buttons):

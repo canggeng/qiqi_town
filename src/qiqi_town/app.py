@@ -51,6 +51,7 @@ from qiqi_town.ui.diary import DiaryUi
 from qiqi_town.ui.ending import EndingUi
 from qiqi_town.ui.memory import MemoryUi
 from qiqi_town.ui.minigame import MinigameUi
+from qiqi_town.ui.night import NightTransitionUi
 from qiqi_town.ui.rhythm import RhythmUi
 from qiqi_town.ui.screens import UiManager
 from qiqi_town.ui.story_order import StoryOrderUi
@@ -131,6 +132,7 @@ class QiqiTownApp(ShowBase):
         self.ui = UiManager(self)
         self.diary_ui = DiaryUi(self)
         self.ending_ui = EndingUi(self)
+        self.night_ui = NightTransitionUi(self)
         self.tutorial = Tutorial(self)
         self.ui.show_title()
         self._update_music_for_state()
@@ -207,6 +209,30 @@ class QiqiTownApp(ShowBase):
         lin.root.setPos(1.5, -1.2, 0.0)
         lin.root.setH(180)
         self.npcs["lin"] = lin
+
+        an = build_villager(
+            self.interiors["kindergarten"].root,
+            name="an",
+            dress_color=(0.94, 0.62, 0.72, 1.0),
+            hair_color=(0.20, 0.14, 0.11, 1.0),
+            height_scale=0.84,
+            hairstyle="pigtails",
+        )
+        an.root.setPos(2.8, -0.2, 0.0)
+        an.root.setH(180)
+        self.npcs["an"] = an
+
+        shao = build_villager(
+            self.interiors["kindergarten"].root,
+            name="shao",
+            dress_color=(0.38, 0.58, 0.84, 1.0),
+            hair_color=(0.14, 0.11, 0.09, 1.0),
+            height_scale=0.84,
+            hairstyle="short",
+        )
+        shao.root.setPos(-2.8, -0.2, 0.0)
+        shao.root.setH(180)
+        self.npcs["shao"] = shao
 
         xiaoman = build_villager(
             self.scene.root,
@@ -382,6 +408,24 @@ class QiqiTownApp(ShowBase):
                 kind="npc",
             ),
             Interactable(
+                "an",
+                "和安思宜说话",
+                (2.8, -0.2, 0.6),
+                (2.8, -1.5),
+                self.talk_an,
+                radius=2.4,
+                kind="npc",
+            ),
+            Interactable(
+                "shao",
+                "和邵文星说话",
+                (-2.8, -0.2, 0.6),
+                (-2.8, -1.5),
+                self.talk_shao,
+                radius=2.4,
+                kind="npc",
+            ),
+            Interactable(
                 "shape_game",
                 "玩形状配对",
                 (3.2, 1.4, 0.8),
@@ -438,7 +482,7 @@ class QiqiTownApp(ShowBase):
         self.scene_active_npcs = {
             "town": [self.npcs["xiaoman"], self.npcs["su"], self.npcs["chen"]],
             "home": [],
-            "kindergarten": [self.npcs["lin"]],
+            "kindergarten": [self.npcs["lin"], self.npcs["an"], self.npcs["shao"]],
             "library": [self.npcs["gu"]],
         }
         self.interactables = self.scene_interactables["town"]
@@ -527,7 +571,6 @@ class QiqiTownApp(ShowBase):
         town_events = [
             ("notice", "看看广场告示牌", (-4.0, 4.0, 1.3), (-4.0, 2.8)),
             ("fountain", "在喷泉边许愿", (0.0, 0.0, 1.2), (0.0, 3.2)),
-            ("ducks", "看看鸭子一家", (15.5, -10.5, 0.6), (15.5, -9.4)),
             ("scarf", "长椅上的围巾", (22.0, -14.0, 0.8), (22.0, -15.2)),
             ("balloon", "树上的气球", (-16.5, -13.5, 2.3), (-16.5, -14.8)),
             ("sandcastle", "沙坑里的城堡", (-20.0, -14.0, 0.6), (-20.0, -15.5)),
@@ -546,6 +589,17 @@ class QiqiTownApp(ShowBase):
                     kind="event",
                 )
             )
+        self.town_interactables.append(
+            Interactable(
+                "ducks_talk",
+                "和鸭子一家说话",
+                (18.2, -16.0, 0.7),
+                (18.2, -18.0),
+                self.talk_ducks,
+                radius=2.8,
+                kind="npc",
+            )
+        )
         for event_id, label, pos, approach in [
             ("cat", "看看猫窝里的团子", (3.8, 2.2, 0.7), (3.8, 1.0)),
             ("books", "地上的书", (-1.6, 2.0, 0.8), (-2.6, 0.8)),
@@ -583,6 +637,9 @@ class QiqiTownApp(ShowBase):
             self.ui.toast("这里已经看过啦。", 1.6)
             return
         self.start_dialogue(f"ev_{event_id}_1")
+
+    def talk_ducks(self) -> None:
+        self.start_dialogue("ducks_talk_1")
 
     def _setup_input(self) -> None:
         self.accept("mouse1", self._on_left_click)
@@ -736,6 +793,10 @@ class QiqiTownApp(ShowBase):
                 self.rhythm_ui.update(dt)
                 self.catch_ui.update(dt)
                 self.memory_ui.update(dt)
+        elif self.mode == "transition":
+            self.player.rig.update(dt, False)
+            self.hover_ring.hide()
+            self.night_ui.update(dt)
         else:
             self.player.rig.update(dt, False)
             self.hover_ring.hide()
@@ -855,6 +916,12 @@ class QiqiTownApp(ShowBase):
             self.start_dialogue("lin_intro_1")
         else:
             self.start_dialogue("lin_after_1")
+
+    def talk_an(self) -> None:
+        self.start_dialogue("an_intro_1")
+
+    def talk_shao(self) -> None:
+        self.start_dialogue("shao_intro_1")
 
     def talk_xiaoman(self) -> None:
         self.start_dialogue("xiaoman_intro_1")
@@ -1113,7 +1180,7 @@ class QiqiTownApp(ShowBase):
         added = False
         if self.current_scene_id == "town" and self.player.position[1] >= 31.0:
             added = self.state.add_sticker("sticker_summit") or added
-        friends = ("xiaoman", "lin", "gu", "su", "chen")
+        friends = ("xiaoman", "lin", "gu", "su", "chen", "an", "shao")
         if all(self.state.friendship.get(name, 0) >= 1 for name in friends):
             added = self.state.add_sticker("sticker_friend_all") or added
         if len(self.state.stickers) >= 10:
@@ -1156,6 +1223,8 @@ class QiqiTownApp(ShowBase):
         self.sleep_to_next_day()
 
     def sleep_to_next_day(self) -> None:
+        if self.mode != "playing":
+            return
         if self.clock.day >= 5:
             if self.state.story_complete:
                 self.ui.toast("灯会已经结束啦。可以继续在小镇里逛逛。", 2.6)
@@ -1165,6 +1234,20 @@ class QiqiTownApp(ShowBase):
         if not self._daily_complete(self.clock.day):
             self.ui.toast("今天还有一件事没做完呢。先在镇上逛逛，或者再去和小镇居民说说话。", 3.2)
             return
+        self.mode = "transition"
+        self.clock.paused = True
+        self.player.stop()
+        self._pending_interaction = None
+        self.hover_ring.hide()
+        self.ui.hide_all()
+        self.audio.play_sfx("page", volume=0.5)
+        self.night_ui.start(
+            self.clock.day + 1,
+            self._advance_to_next_day,
+            self._finish_night_transition,
+        )
+
+    def _advance_to_next_day(self) -> None:
         self.clock.advance_day()
         self.state.day = self.clock.day
         self.state.time_minutes = self.clock.minute_int
@@ -1175,6 +1258,9 @@ class QiqiTownApp(ShowBase):
             self.state.quests[quest_id] = QuestState(step=0, status="active")
         self._activate_scene("home", self.interiors["home"].spawn, 0.0)
         self.state.location = "home"
+        self._sync_state_from_world()
+
+    def _finish_night_transition(self) -> None:
         self.mode = "playing"
         self.clock.paused = False
         self.ui.show_hud()

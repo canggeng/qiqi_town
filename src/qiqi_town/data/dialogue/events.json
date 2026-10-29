@@ -101,6 +101,32 @@
       {"text": "从旁边绕过去。", "next": "ev_ducks_2b"}
     ]
   },
+  "ducks_talk_1": {
+    "speaker": "鸭子一家",
+    "text": "嘎嘎——扁扁带着小鸭子们游到岸边，歪着头看淇淇，像是在等她说话。",
+    "choices": [
+      {
+        "text": "学一声鸭叫：嘎嘎！",
+        "next": "ducks_talk_2a",
+        "effects": [{"type": "add_friendship", "npc": "su", "amount": 1}]
+      },
+      {
+        "text": "喂它们一小块面包。",
+        "next": "ducks_talk_2b",
+        "effects": [{"type": "add_friendship", "npc": "su", "amount": 1}]
+      }
+    ]
+  },
+  "ducks_talk_2a": {
+    "speaker": "鸭子一家",
+    "text": "嘎嘎嘎！小鸭子们一起回应，扁扁满意地拍了拍翅膀。",
+    "effects": [{"type": "set_flag", "key": "event_ducks_seen", "value": true}]
+  },
+  "ducks_talk_2b": {
+    "speaker": "鸭子一家",
+    "text": "面包屑刚落下，小鸭子们就排着队游过来。扁扁把最大的一块留给了最小的那只。",
+    "effects": [{"type": "set_flag", "key": "event_ducks_seen", "value": true}]
+  },
   "ev_ducks_2a": {
     "speaker": "淇淇",
     "text": "最后一只小鸭子摇摇摆摆地跟上了。鸭妈妈回头叫了一声，像在说谢谢。",

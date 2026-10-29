@@ -91,7 +91,8 @@ class PlayerController:
                 ny = current[1] + dy / distance * step
                 self._position = (nx, ny)
                 self.root.setPos(nx, ny, self.height_fn(nx, ny))
-                self._heading = math.atan2(dx, dy)
+                # Panda3D 中 H=90 会把 +Y 转向 -X，因此方向角是 atan2(-dx, dy)。
+                self._heading = math.atan2(-dx, dy)
                 self.root.setH(math.degrees(self._heading))
 
         self.rig.update(dt, self._moving)

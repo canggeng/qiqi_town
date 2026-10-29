@@ -47,7 +47,7 @@ class DialogueUi:
             text="",
             font=self.font,
             pos=(-1.14, -0.28),
-            scale=0.045,
+            scale=0.0585,
             align=TextNode.ALeft,
             fg=(0.82, 0.36, 0.30, 1.0),
             shadow=(1.0, 1.0, 1.0, 0.0),
@@ -58,7 +58,7 @@ class DialogueUi:
             text="",
             font=self.font,
             pos=(-1.14, -0.40),
-            scale=0.038,
+            scale=0.0494,
             align=TextNode.ALeft,
             fg=(0.18, 0.16, 0.15, 1.0),
             shadow=(1.0, 1.0, 1.0, 0.0),
@@ -67,7 +67,7 @@ class DialogueUi:
         self.continue_bg = DirectFrame(
             parent=self.root,
             frameColor=(0.98, 0.86, 0.64, 0.98),
-            frameSize=(-0.14, 0.14, -0.036, 0.036),
+            frameSize=(-0.17, 0.17, -0.045, 0.045),
             pos=(0.99, 0, -0.91),
             relief=DGG.FLAT,
         )
@@ -76,8 +76,8 @@ class DialogueUi:
             parent=self.root,
             text="点击继续",
             font=self.font,
-            pos=(0.99, -0.922),
-            scale=0.026,
+            pos=(0.99, -0.923),
+            scale=0.0338,
             align=TextNode.ACenter,
             fg=(0.34, 0.25, 0.18, 1.0),
             mayChange=True,
@@ -149,11 +149,11 @@ class DialogueUi:
                 text=choice.text,
                 text_font=self.font,
                 text_fg=(0.22, 0.19, 0.16, 1.0),
-                text_scale=0.03,
+                text_scale=0.039,
                 text_align=TextNode.ALeft,
                 text_pos=(-0.68, 0.0),
                 frameColor=(0.94, 0.84, 0.68, 0.97),
-                frameSize=(-0.72, 0.72, -0.035, 0.035),
+                frameSize=(-0.72, 0.72, -0.045, 0.045),
                 pos=(0.42, 0, y),
                 relief=DGG.FLAT,
                 command=self._choose,
@@ -161,7 +161,7 @@ class DialogueUi:
             )
             button.setTransparency(TransparencyAttrib.MAlpha)
             self.choice_buttons.append(button)
-            y -= 0.095
+            y -= 0.105
         self._set_continue_visible(False)
 
     def _set_continue_visible(self, visible: bool) -> None:
