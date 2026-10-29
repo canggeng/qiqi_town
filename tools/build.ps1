@@ -1,0 +1,41 @@
+# 淇淇的小镇 · 构建脚本
+$ErrorActionPreference = "Stop"
+$Root = Split-Path -Parent $PSScriptRoot
+Set-Location $Root
+$env:UV_CACHE_DIR = Join-Path $Root ".uv-cache"
+
+Write-Host "== uv sync =="
+uv sync --frozen
+if ($LASTEXITCODE -ne 0) { throw "uv sync failed" }
+
+Write-Host "== tests =="
+uv run pytest
+if ($LASTEXITCODE -ne 0) { throw "tests failed" }
+
+Write-Host "== pyinstaller =="
+uv run pyinstaller tools/qiqi_town.spec --noconfirm --clean
+if ($LASTEXITCODE -ne 0) { throw "pyinstaller failed" }
+
+$Exe = Join-Path $Root "dist\QiqiTown\QiqiTown.exe"
+if (-not (Test-Path $Exe)) { throw "missing $Exe" }
+
+Write-Host "== smoke exe =="
+$DataDir = Join-Path $Root ".smoke-data-exe-build"
+$env:QIQI_TOWN_DATA_DIR = $DataDir
+New-Item -ItemType Directory -Force -Path $DataDir | Out-Null
+$Marker = Join-Path $DataDir "smoke.ok"
+if (Test-Path $Marker) { Remove-Item $Marker -Force }
+& $Exe --smoke-test
+$deadline = (Get-Date).AddSeconds(60)
+while (-not (Test-Path $Marker) -and (Get-Date) -lt $deadline) {
+    Start-Sleep -Milliseconds 500
+}
+if (-not (Test-Path $Marker)) { throw "exe smoke test timed out" }
+Write-Host "smoke marker: $Marker"
+
+Write-Host "== zip =="
+$Version = "0.1.0"
+$Zip = Join-Path $Root "dist\QiqiTown_v${Version}_windows_x64.zip"
+if (Test-Path $Zip) { Remove-Item $Zip -Force }
+Compress-Archive -Path (Join-Path $Root "dist\QiqiTown\*") -DestinationPath $Zip
+Write-Host "Done: $Zip"

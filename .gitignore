@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+*.zip
+*.log
+.uv-cache/
+.smoke-data/
+.test-tmp/
+.tmp2/
+docs/reference/*.jpg
+docs/reference/*.jpeg

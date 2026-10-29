@@ -1,0 +1,35 @@
+[project]
+name = "qiqi-town"
+version = "0.1.0"
+description = "淇淇的小镇：一个用鼠标游玩的温馨 3D 小镇生活游戏"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "panda3d==1.10.16",
+]
+
+[project.scripts]
+qiqi-town = "qiqi_town.__main__:main"
+
+[dependency-groups]
+dev = [
+    "pillow>=11.3.0",
+    "pyinstaller==6.22.3",
+    "pytest>=8.4.0",
+    "ruff>=0.14.0",
+]
+
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/qiqi_town"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -p no:cacheprovider -p no:tmpdir"
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"

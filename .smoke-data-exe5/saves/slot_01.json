@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "meta": {
+    "slot": 1,
+    "is_auto": false,
+    "saved_at": "2026-10-29T16:17:54+08:00",
+    "playtime_seconds": 0.21,
+    "day": 1,
+    "time_minutes": 480,
+    "location_label": "青禾镇",
+    "quest_title": "新朋友"
+  },
+  "state": {
+    "schema_version": 1,
+    "day": 1,
+    "time_minutes": 480,
+    "location": "town",
+    "spawn_id": "home_start",
+    "player": {
+      "x": 0.0,
+      "y": -8.0,
+      "facing": 3.141592653589793
+    },
+    "flags": {
+      "met_lin": true,
+      "shared_balloon": true,
+      "day1_done": true,
+      "day1_reported": true
+    },
+    "quests": {
+      "day1_main": {
+        "step": 1,
+        "status": "complete"
+      }
+    },
+    "minigames": {
+      "day1_shapes": {
+        "completed": true,
+        "best": 3,
+        "plays": 1
+      }
+    },
+    "inventory": [],
+    "stickers": [
+      "sticker_shapes",
+      "sticker_day1"
+    ],
+    "friendship": {
+      "lin": 2,
+      "xiaoman": 1
+    },
+    "journal_entries": [
+      "journal_shapes",
+      "day1_new_friend"
+    ],
+    "seen_dialogues": [
+      "lin_intro_1",
+      "lin_intro_2",
+      "lin_intro_3a",
+      "lin_intro_4",
+      "lin_intro_5a",
+      "lin_intro_6"
+    ],
+    "playtime_seconds": 0.21,
+    "story_complete": false
+  }
+}

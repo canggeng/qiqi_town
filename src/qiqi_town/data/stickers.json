@@ -1,0 +1,22 @@
+[
+  {"id": "sticker_day1", "name": "新朋友", "hint": "完成第一天主线「新朋友」"},
+  {"id": "sticker_shapes", "name": "形状小管家", "hint": "完成幼儿园的形状配对小游戏"},
+  {"id": "sticker_ducks", "name": "鸭鸭面包", "hint": "在公园完成喂小鸭小游戏"},
+  {"id": "sticker_story", "name": "故事排排队", "hint": "在图书馆完成故事排序"},
+  {"id": "sticker_swing", "name": "秋千飞高", "hint": "在游乐场完成秋千节奏"},
+  {"id": "sticker_find", "name": "小镇侦探", "hint": "完成一次 3D 找一找"},
+  {"id": "sticker_memory", "name": "山路记忆", "hint": "记住山道的彩色路标"},
+  {"id": "sticker_firefly", "name": "萤火虫之夜", "hint": "在山顶接住萤火虫"},
+  {"id": "sticker_lantern", "name": "第一盏灯", "hint": "完成灯会故事排序"},
+  {"id": "sticker_picnic", "name": "野餐布", "hint": "完成公园野餐主线"},
+  {"id": "sticker_hairpin", "name": "找到发夹", "hint": "完成游乐场主线"},
+  {"id": "sticker_map", "name": "旧地图", "hint": "完成图书馆主线"},
+  {"id": "sticker_summit", "name": "山顶的风", "hint": "第一次登上青禾山"},
+  {"id": "sticker_cat", "name": "团子的信任", "hint": "和图书馆的猫成为朋友"},
+  {"id": "sticker_balloon", "name": "红气球", "hint": "分享红气球或把它系在山顶"},
+  {"id": "sticker_friend_all", "name": "大家在一起", "hint": "和所有朋友都说过话"},
+  {"id": "sticker_night", "name": "灯会之夜", "hint": "完成第五天灯会主线"},
+  {"id": "sticker_rain", "name": "雨后的泥土", "hint": "听顾爷爷讲完小镇的故事"},
+  {"id": "sticker_diary", "name": "日记本", "hint": "收集十张回忆贴纸"},
+  {"id": "sticker_wish", "name": "山顶的愿望", "hint": "在灯会上说出愿望"}
+]

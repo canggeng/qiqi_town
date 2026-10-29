@@ -1,0 +1,127 @@
+{
+  "lin_intro_1": {
+    "speaker": "林老师",
+    "text": "淇淇，早上好呀。你带着红气球来啦。",
+    "portrait": "happy",
+    "effects": [
+      {"type": "set_flag", "key": "met_lin", "value": true}
+    ],
+    "next": "lin_intro_2"
+  },
+  "lin_intro_2": {
+    "speaker": "林老师",
+    "text": "今天我们要给新朋友做姓名卡。你愿意帮老师分彩纸吗？",
+    "choices": [
+      {
+        "text": "愿意！我来分。",
+        "next": "lin_intro_3a",
+        "effects": [
+          {"type": "add_friendship", "npc": "lin", "amount": 1}
+        ]
+      },
+      {
+        "text": "我想先和小满打个招呼。",
+        "next": "lin_intro_3b",
+        "effects": [
+          {"type": "add_friendship", "npc": "xiaoman", "amount": 1}
+        ]
+      }
+    ]
+  },
+  "lin_intro_3a": {
+    "speaker": "林老师",
+    "text": "谢谢你，淇淇。你总是这么细心。",
+    "next": "lin_intro_4"
+  },
+  "lin_intro_3b": {
+    "speaker": "林老师",
+    "text": "去吧，小满在广场那边。记得等会儿回来。",
+    "next": "lin_intro_4"
+  },
+  "lin_intro_4": {
+    "speaker": "林老师",
+    "text": "对了，你的红气球真漂亮。愿意让新朋友拿一会儿吗？",
+    "choices": [
+      {
+        "text": "愿意，但要轻轻拿。",
+        "next": "lin_intro_5a",
+        "effects": [
+          {"type": "set_flag", "key": "shared_balloon", "value": true},
+          {"type": "add_friendship", "npc": "xiaoman", "amount": 1}
+        ]
+      },
+      {
+        "text": "今天还是我自己拿着吧。",
+        "next": "lin_intro_5b",
+        "effects": [
+          {"type": "set_flag", "key": "kept_balloon", "value": true}
+        ]
+      }
+    ]
+  },
+  "lin_intro_5a": {
+    "speaker": "林老师",
+    "text": "你学会了分享，也学会了照顾自己的宝贝。",
+    "next": "lin_intro_6"
+  },
+  "lin_intro_5b": {
+    "speaker": "林老师",
+    "text": "当然可以，气球是你的好朋友呀。",
+    "next": "lin_intro_6"
+  },
+  "lin_intro_6": {
+    "speaker": "林老师",
+    "text": "今天的姓名卡就交给你啦。做完以后，回家和妈妈说说第一天吧。",
+    "effects": [
+      {"type": "set_flag", "key": "day1_done", "value": true},
+      {"type": "set_quest_status", "quest": "day1_main", "status": "complete"},
+      {"type": "advance_quest", "quest": "day1_main", "step": 1},
+      {"type": "give_sticker", "id": "sticker_day1"},
+      {"type": "add_journal", "id": "day1_new_friend"}
+    ]
+  },
+  "lin_after_1": {
+    "speaker": "林老师",
+    "text": "今天辛苦啦。回家睡一觉，明天见。",
+    "next": "lin_after_2"
+  },
+  "lin_after_2": {
+    "speaker": "林老师",
+    "text": "红气球要跟好淇淇哦。",
+    "portrait": "happy"
+  },
+  "xiaoman_intro_1": {
+    "speaker": "小满",
+    "text": "淇淇！你的红气球好大呀。等会儿我们去游乐场荡秋千吧？",
+    "choices": [
+      {
+        "text": "好呀，我先把老师的事做完。",
+        "next": "xiaoman_intro_2a",
+        "effects": [
+          {"type": "add_friendship", "npc": "xiaoman", "amount": 1}
+        ]
+      },
+      {
+        "text": "我先在镇上逛一逛。",
+        "next": "xiaoman_intro_2b"
+      }
+    ]
+  },
+  "xiaoman_intro_2a": {
+    "speaker": "小满",
+    "text": "一言为定！我等你。"
+  },
+  "xiaoman_intro_2b": {
+    "speaker": "小满",
+    "text": "那我也去逛逛，等会儿见！"
+  },
+  "gu_intro_1": {
+    "speaker": "顾爷爷",
+    "text": "图书馆今天很安静。淇淇，要不要进来听个旧故事？",
+    "next": "gu_intro_2"
+  },
+  "gu_intro_2": {
+    "speaker": "顾爷爷",
+    "text": "过两天灯会，山顶的灯笼会把整座小镇照亮的。"
+  }
+}

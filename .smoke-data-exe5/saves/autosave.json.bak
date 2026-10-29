@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "meta": {
+    "slot": 0,
+    "is_auto": true,
+    "saved_at": "2026-10-29T16:17:54+08:00",
+    "playtime_seconds": 0.11,
+    "day": 1,
+    "time_minutes": 480,
+    "location_label": "幼儿园",
+    "quest_title": "新朋友"
+  },
+  "state": {
+    "schema_version": 1,
+    "day": 1,
+    "time_minutes": 480,
+    "location": "kindergarten",
+    "spawn_id": "home_start",
+    "player": {
+      "x": 0.0,
+      "y": -3.0,
+      "facing": 0.0
+    },
+    "flags": {},
+    "quests": {
+      "day1_main": {
+        "step": 0,
+        "status": "active"
+      }
+    },
+    "minigames": {
+      "day1_shapes": {
+        "completed": true,
+        "best": 3,
+        "plays": 1
+      }
+    },
+    "inventory": [],
+    "stickers": [
+      "sticker_shapes"
+    ],
+    "friendship": {
+      "lin": 1
+    },
+    "journal_entries": [
+      "journal_shapes"
+    ],
+    "seen_dialogues": [],
+    "playtime_seconds": 0.11,
+    "story_complete": false
+  }
+}
