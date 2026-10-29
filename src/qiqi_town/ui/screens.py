@@ -9,6 +9,8 @@ from direct.gui.DirectGui import DirectButton, DirectFrame, DirectSlider
 from direct.gui.OnscreenText import OnscreenText
 from panda3d.core import NodePath, TextNode, TransparencyAttrib
 
+from qiqi_town.ui.roundrect import round_button, round_widget
+
 
 class UiManager:
     def __init__(self, app) -> None:
@@ -75,6 +77,7 @@ class UiManager:
             relief=DGG.FLAT,
         )
         panel.setTransparency(TransparencyAttrib.MAlpha)
+        round_widget(panel, radius=0.04)
         return panel
 
     def _label(
@@ -129,6 +132,7 @@ class UiManager:
             command=self._wrap_command(command),
         )
         button.setTransparency(TransparencyAttrib.MAlpha)
+        round_button(button, radius=0.03)
         if not enabled:
             button["state"] = DGG.DISABLED
         return button
@@ -381,6 +385,7 @@ class UiManager:
             command=self._wrap_command(command),
         )
         button.setTransparency(TransparencyAttrib.MAlpha)
+        round_button(button, radius=0.03)
         if not enabled:
             button["state"] = DGG.DISABLED
             button["frameColor"] = (0.72, 0.68, 0.61, 0.55)
@@ -608,6 +613,7 @@ class UiManager:
             command=self._wrap_command(self.app.pause_game),
         )
         self.hud_menu_button.setTransparency(TransparencyAttrib.MAlpha)
+        round_button(self.hud_menu_button, radius=0.025)
         self.hud_exit_button = DirectButton(
             parent=self.hud_root,
             text="出门",
@@ -621,6 +627,7 @@ class UiManager:
             command=self._wrap_command(self.app.exit_to_town),
         )
         self.hud_exit_button.setTransparency(TransparencyAttrib.MAlpha)
+        round_button(self.hud_exit_button, radius=0.025)
         self.hud_exit_button.hide()
 
     def set_interior(self, is_interior: bool) -> None:

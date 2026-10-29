@@ -17,3 +17,6 @@ dist/
 pytest-cache-files-*/
 docs/reference/*.jpg
 docs/reference/*.jpeg
+
+# local app-data fallback from development runs
+QiqiTown/

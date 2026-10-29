@@ -12,6 +12,7 @@ from panda3d.core import TextNode, TransparencyAttrib
 from qiqi_town.config import DAY_TITLES
 from qiqi_town.paths import data_dir
 from qiqi_town.systems.daily_content import slots_for_day
+from qiqi_town.ui.roundrect import round_button, round_widget
 
 STICKER_SLOTS = 20
 
@@ -46,6 +47,7 @@ class DiaryUi:
             relief=DGG.FLAT,
         )
         self._panel.setTransparency(TransparencyAttrib.MAlpha)
+        round_widget(self._panel, radius=0.05)
         self.title = self._label("淇淇的日记", (0, 0.80), 0.07, TextNode.ACenter)
         self.day_title = self._label("", (-1.16, 0.64), 0.045)
         self.quest_text = self._label("", (-1.16, 0.55), 0.032)
@@ -62,7 +64,7 @@ class DiaryUi:
             TextNode.ALeft,
             fg=(0.45, 0.40, 0.34, 1.0),
         )
-        DirectButton(
+        back = DirectButton(
             parent=self.root,
             text="返回",
             text_font=self.font,
@@ -74,6 +76,8 @@ class DiaryUi:
             relief=DGG.FLAT,
             command=self._close,
         )
+        back.setTransparency(TransparencyAttrib.MAlpha)
+        round_button(back, radius=0.03)
 
     def _close(self) -> None:
         self.app.close_diary()

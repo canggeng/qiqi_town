@@ -8,6 +8,7 @@ from direct.gui.OnscreenText import OnscreenText
 from panda3d.core import TextNode, TransparencyAttrib
 
 from qiqi_town.systems.minigames.shape_match import ShapeMatchGame, default_shape_game
+from qiqi_town.ui.roundrect import round_button, round_widget
 
 
 class MinigameUi:
@@ -32,6 +33,7 @@ class MinigameUi:
             relief=DGG.FLAT,
         )
         self.panel.setTransparency(TransparencyAttrib.MAlpha)
+        round_widget(self.panel, radius=0.05)
         self.title = self._label("形状小管家", (0, 0.64), 0.075, TextNode.ACenter)
         self.subtitle = self._label(
             "先点下面的形状，再点上面它的家。", (0, 0.55), 0.032, TextNode.ACenter
@@ -81,6 +83,7 @@ class MinigameUi:
                 extraArgs=[slot.id],
             )
             button.setTransparency(TransparencyAttrib.MAlpha)
+            round_button(button, radius=0.04)
             self.slot_buttons[slot.id] = button
         for index, item in enumerate(self.game.items):
             x = -0.55 + index * 0.55
@@ -98,6 +101,7 @@ class MinigameUi:
                 extraArgs=[item.id],
             )
             button.setTransparency(TransparencyAttrib.MAlpha)
+            round_button(button, radius=0.04)
             self.item_buttons[item.id] = button
 
     def _update_buttons(self) -> None:
@@ -185,6 +189,8 @@ class MinigameUi:
             relief=DGG.FLAT,
             command=lambda: self.app.end_minigame(success=True, game_id=self._game_id),
         )
+        self.reward_button.setTransparency(TransparencyAttrib.MAlpha)
+        round_button(self.reward_button, radius=0.04)
 
     def _clear_buttons(self) -> None:
         for node in self.slot_root.getChildren():

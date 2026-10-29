@@ -1,4 +1,4 @@
-﻿import json
+import json
 
 import pytest
 
@@ -100,3 +100,28 @@ def test_delete(work_dir) -> None:
     repo.delete_manual(1)
     assert not repo.manual_path(1).exists()
     assert repo.latest() is None
+
+
+def test_app_data_root_prefers_appdata(work_dir, monkeypatch) -> None:
+    from qiqi_town.paths import app_data_root
+
+    appdata = work_dir / "appdata"
+    monkeypatch.setenv("APPDATA", str(appdata))
+    monkeypatch.delenv("QIQI_TOWN_DATA_DIR", raising=False)
+    root = app_data_root()
+    assert root == appdata / "QiqiTown"
+    assert root.is_dir()
+
+
+def test_legacy_saves_are_migrated(work_dir, monkeypatch) -> None:
+    target = work_dir / "stable"
+    legacy = work_dir / "legacy" / "saves"
+    legacy.mkdir(parents=True)
+    (legacy / "slot_02.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setenv("QIQI_TOWN_DATA_DIR", str(target))
+    monkeypatch.setattr(
+        "qiqi_town.core.save_repository.legacy_save_dirs",
+        lambda: [legacy],
+    )
+    repo = SaveRepository()
+    assert (repo.saves_dir / "slot_02.json").exists()

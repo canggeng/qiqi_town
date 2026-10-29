@@ -84,6 +84,7 @@ class QiqiTownApp(ShowBase):
         self._step_timer = 0.0
         self._last_audio_key: tuple[str, int, str] | None = None
         self.state = GameState.new_game()
+        self._in_game = False
         self.clock = GameClock(day=1, minutes=8 * 60, paused=True)
 
         self.scene = build_town(self.render)
@@ -645,6 +646,7 @@ class QiqiTownApp(ShowBase):
         self.accept("mouse1", self._on_left_click)
         self.accept("wheel_up", self._on_wheel_up)
         self.accept("wheel_down", self._on_wheel_down)
+        self.accept("window-close", self._on_window_close)
 
     # ---------------------------------------------------------------- input
     def _on_escape(self) -> None:
@@ -1447,6 +1449,7 @@ class QiqiTownApp(ShowBase):
 
     def _do_return_to_title(self) -> None:
         self.tutorial.stop()
+        self._in_game = False
         self.mode = "title"
         self.clock.paused = True
         self.player.stop()
@@ -1456,7 +1459,12 @@ class QiqiTownApp(ShowBase):
         self.ui.show_title()
 
     def quit_game(self) -> None:
+        if self._in_game:
+            self._auto_save()
         self.userExit()
+
+    def _on_window_close(self) -> None:
+        self.quit_game()
 
     def has_saves(self) -> bool:
         return self.save_repo.has_any()
@@ -1474,6 +1482,7 @@ class QiqiTownApp(ShowBase):
     def _begin_new_game(self, *, auto_save: bool = True) -> None:
         if hasattr(self, "find_game") and self.find_game.active:
             self._stop_find_game(silent=True)
+        self._in_game = True
         self.state = GameState.new_game()
         self.state.location = "town"
         self.state.player.x, self.state.player.y = self.town_scene.player_start
@@ -1561,6 +1570,7 @@ class QiqiTownApp(ShowBase):
     def apply_state(self, state: GameState, *, notify: bool = False) -> None:
         if hasattr(self, "find_game") and self.find_game.active:
             self._stop_find_game(silent=True)
+        self._in_game = True
         self.state = state
         self.clock = GameClock(day=state.day, minutes=state.time_minutes)
         self.clock.paused = False

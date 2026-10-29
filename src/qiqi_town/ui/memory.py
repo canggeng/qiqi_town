@@ -8,6 +8,7 @@ from direct.gui.OnscreenText import OnscreenText
 from panda3d.core import TextNode, TransparencyAttrib
 
 from qiqi_town.systems.minigames.memory import MemoryGame, random_memory_game
+from qiqi_town.ui.roundrect import round_button, round_widget
 
 COLORS = (
     ("红", (0.92, 0.38, 0.34, 1.0)),
@@ -39,6 +40,7 @@ class MemoryUi:
             relief=DGG.FLAT,
         )
         panel.setTransparency(TransparencyAttrib.MAlpha)
+        round_widget(panel, radius=0.05)
         self.title = self._label("山路记忆", (0, 0.55), 0.075, TextNode.ACenter)
         self.subtitle = self._label("", (0, 0.45), 0.036, TextNode.ACenter)
         self.progress = self._label("", (0, -0.34), 0.034, TextNode.ACenter)
@@ -58,6 +60,7 @@ class MemoryUi:
                 extraArgs=[index],
             )
             button.setTransparency(TransparencyAttrib.MAlpha)
+            round_button(button, radius=0.04)
             self.buttons.append(button)
         self.reward_button: DirectButton | None = None
 
@@ -136,6 +139,8 @@ class MemoryUi:
             relief=DGG.FLAT,
             command=lambda: self.app.end_extra_minigame(success=True, game_id=self._game_id),
         )
+        self.reward_button.setTransparency(TransparencyAttrib.MAlpha)
+        round_button(self.reward_button, radius=0.04)
 
     def _clear_reward(self) -> None:
         if self.reward_button is not None:

@@ -8,6 +8,7 @@ from direct.gui.OnscreenText import OnscreenText
 from panda3d.core import TextNode, TransparencyAttrib
 
 from qiqi_town.systems.dialogue import DialogueRunner
+from qiqi_town.ui.roundrect import round_button, round_widget
 
 
 def wrap_cjk(text: str, max_chars: int = 34) -> str:
@@ -42,6 +43,7 @@ class DialogueUi:
             relief=DGG.FLAT,
         )
         self.panel.setTransparency(TransparencyAttrib.MAlpha)
+        round_widget(self.panel, radius=0.035)
         self.speaker_text = OnscreenText(
             parent=self.root,
             text="",
@@ -67,17 +69,18 @@ class DialogueUi:
         self.continue_bg = DirectFrame(
             parent=self.root,
             frameColor=(0.98, 0.86, 0.64, 0.98),
-            frameSize=(-0.17, 0.17, -0.045, 0.045),
+            frameSize=(-0.22, 0.22, -0.055, 0.055),
             pos=(0.99, 0, -0.91),
             relief=DGG.FLAT,
         )
         self.continue_bg.setTransparency(TransparencyAttrib.MAlpha)
+        round_widget(self.continue_bg, radius=0.03)
         self.continue_text = OnscreenText(
             parent=self.root,
             text="点击继续",
             font=self.font,
-            pos=(0.99, -0.923),
-            scale=0.0338,
+            pos=(0.99, -0.927),
+            scale=0.0439,
             align=TextNode.ACenter,
             fg=(0.34, 0.25, 0.18, 1.0),
             mayChange=True,
@@ -160,6 +163,7 @@ class DialogueUi:
                 extraArgs=[index],
             )
             button.setTransparency(TransparencyAttrib.MAlpha)
+            round_button(button, radius=0.025)
             self.choice_buttons.append(button)
             y -= 0.105
         self._set_continue_visible(False)

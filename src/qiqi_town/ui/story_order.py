@@ -8,6 +8,7 @@ from direct.gui.OnscreenText import OnscreenText
 from panda3d.core import TextNode, TransparencyAttrib
 
 from qiqi_town.systems.minigames.story_order import StoryOrderGame, default_story_game
+from qiqi_town.ui.roundrect import round_button, round_widget
 
 
 class StoryOrderUi:
@@ -32,6 +33,7 @@ class StoryOrderUi:
             relief=DGG.FLAT,
         )
         panel.setTransparency(TransparencyAttrib.MAlpha)
+        round_widget(panel, radius=0.05)
         self.title = self._label("故事排排队", (0, 0.58), 0.075, TextNode.ACenter)
         self.subtitle = self._label("点击两张卡片，把它们换到正确的顺序。", (0, 0.49), 0.032, TextNode.ACenter)
         self.status = self._label("", (0, -0.38), 0.034, TextNode.ACenter)
@@ -89,6 +91,7 @@ class StoryOrderUi:
                 extraArgs=[index],
             )
             button.setTransparency(TransparencyAttrib.MAlpha)
+            round_button(button, radius=0.035)
             self.buttons.append(button)
 
     def _select(self, index: int) -> None:
@@ -121,6 +124,8 @@ class StoryOrderUi:
             relief=DGG.FLAT,
             command=lambda: self.app.end_extra_minigame(success=True, game_id=self._game_id),
         )
+        self.reward_button.setTransparency(TransparencyAttrib.MAlpha)
+        round_button(self.reward_button, radius=0.04)
 
     def _clear_cards(self) -> None:
         for node in self.card_root.getChildren():

@@ -21,7 +21,7 @@ from qiqi_town.config import (
     SAVE_SLOT_COUNT,
 )
 from qiqi_town.core.state import GameState
-from qiqi_town.paths import app_data_root
+from qiqi_town.paths import app_data_root, legacy_save_dirs
 
 
 class SaveErrorCode(str, Enum):
@@ -105,6 +105,34 @@ class SaveRepository:
         self.slot_count = int(slot_count)
         self.saves_dir = self.root / "saves"
         self.saves_dir.mkdir(parents=True, exist_ok=True)
+        if root is None:
+            self._migrate_legacy_saves()
+
+    def _migrate_legacy_saves(self) -> None:
+        """把旧版 cwd/exe 旁边的存档迁移到稳定目录，避免“存档为空”。"""
+        if any(self.saves_dir.glob("slot_*.json")):
+            return
+        target = self.saves_dir.resolve()
+        for legacy in legacy_save_dirs():
+            try:
+                source = legacy.resolve()
+            except OSError:
+                continue
+            if source == target or not source.is_dir():
+                continue
+            copied = False
+            for pattern in ("slot_*.json", "autosave.json"):
+                for path in source.glob(pattern):
+                    destination = self.saves_dir / path.name
+                    if destination.exists():
+                        continue
+                    try:
+                        shutil.copy2(path, destination)
+                        copied = True
+                    except OSError:
+                        continue
+            if copied:
+                return
 
     # ---- paths ---------------------------------------------------------
     def manual_path(self, slot: int) -> Path:

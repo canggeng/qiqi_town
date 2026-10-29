@@ -8,6 +8,7 @@ from direct.gui.OnscreenText import OnscreenText
 from panda3d.core import TextNode, TransparencyAttrib
 
 from qiqi_town.systems.minigames.rhythm import RhythmGame
+from qiqi_town.ui.roundrect import round_button, round_widget
 
 
 class RhythmUi:
@@ -32,6 +33,7 @@ class RhythmUi:
             relief=DGG.FLAT,
         )
         panel.setTransparency(TransparencyAttrib.MAlpha)
+        round_widget(panel, radius=0.05)
         self.title = self._label("秋千节奏", (0, 0.54), 0.075, TextNode.ACenter)
         self.subtitle = self._label("指针进入亮色区域时，点击“推秋千！”。", (0, 0.45), 0.03, TextNode.ACenter)
         self.progress = self._label("", (0, -0.33), 0.036, TextNode.ACenter)
@@ -72,6 +74,8 @@ class RhythmUi:
             relief=DGG.FLAT,
             command=self._push,
         )
+        self.push_button.setTransparency(TransparencyAttrib.MAlpha)
+        round_button(self.push_button, radius=0.04)
         self.reward_button: DirectButton | None = None
 
     def _label(self, text: str, pos: tuple[float, float], scale: float, align) -> OnscreenText:
@@ -133,6 +137,8 @@ class RhythmUi:
             relief=DGG.FLAT,
             command=lambda: self.app.end_extra_minigame(success=True, game_id=self._game_id),
         )
+        self.reward_button.setTransparency(TransparencyAttrib.MAlpha)
+        round_button(self.reward_button, radius=0.04)
 
     def _clear_reward(self) -> None:
         if self.reward_button is not None:

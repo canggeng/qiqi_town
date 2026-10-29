@@ -32,6 +32,8 @@ def app_data_root() -> Path:
 
     测试可通过 QIQI_TOWN_DATA_DIR 指向临时目录。
     优先级：环境变量 > %APPDATA% > %LOCALAPPDATA% > 用户目录。
+    不会回退到当前工作目录：从不同文件夹启动游戏时，cwd 会变化，
+    导致下一次启动看起来“存档为空”。
     """
     override = os.environ.get("QIQI_TOWN_DATA_DIR")
     if override:
@@ -45,6 +47,9 @@ def app_data_root() -> Path:
     if localappdata:
         candidates.append(Path(localappdata))
     candidates.append(Path.home())
+    if getattr(sys, "frozen", False):
+        # 便携包在极端权限环境下，仍使用 exe 所在目录，保证路径稳定。
+        candidates.append(Path(sys.executable).resolve().parent)
 
     for base in candidates:
         try:
@@ -56,8 +61,22 @@ def app_data_root() -> Path:
             return root
         except OSError:
             continue
-    # 理论不可达；作为最后的兜底仍返回一个路径。
-    return Path.cwd() / APP_DIR_NAME
+    # 稳定兜底：仍放在用户目录，而不是随 cwd 漂移。
+    return Path.home() / APP_DIR_NAME
+
+
+def legacy_save_dirs() -> list[Path]:
+    """旧版本可能把存档写在 cwd 或 exe 旁边，用于首次启动迁移。"""
+    dirs: list[Path] = []
+    exe_dir = Path(sys.executable).resolve().parent
+    for root in (
+        Path.cwd() / APP_DIR_NAME / "saves",
+        exe_dir / APP_DIR_NAME / "saves",
+        exe_dir / "saves",
+    ):
+        if root not in dirs:
+            dirs.append(root)
+    return dirs
 
 
 def saves_dir() -> Path:

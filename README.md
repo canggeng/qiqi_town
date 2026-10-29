@@ -51,6 +51,8 @@ powershell -ExecutionPolicy Bypass -File tools/build.ps1
 - `%APPDATA%\QiqiTown\saves\slot_01.json` … `slot_20.json`
 - `%APPDATA%\QiqiTown\saves\autosave.json`
 - 设置：`%APPDATA%\QiqiTown\settings.json`
+- 存档目录现在固定，不会随启动文件夹变化；旧版写在游戏目录旁的存档会在首次启动时自动迁移。
+- 退出游戏和关闭窗口时也会自动保存一次。
 
 ## SDD 文档
 

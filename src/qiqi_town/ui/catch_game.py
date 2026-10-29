@@ -8,6 +8,7 @@ from direct.gui.OnscreenText import OnscreenText
 from panda3d.core import TextNode, TransparencyAttrib
 
 from qiqi_town.systems.minigames.catch_game import CatchGame
+from qiqi_town.ui.roundrect import round_button, round_widget
 
 
 class CatchUi:
@@ -32,6 +33,7 @@ class CatchUi:
             relief=DGG.FLAT,
         )
         panel.setTransparency(TransparencyAttrib.MAlpha)
+        round_widget(panel, radius=0.05)
         self.title = self._label("接住花瓣", (0, 0.55), 0.075, TextNode.ACenter)
         self.subtitle = self._label("点击飘动的花瓣，接住 6 片。", (0, 0.46), 0.032, TextNode.ACenter)
         self.progress = self._label("0 / 6", (0, -0.35), 0.036, TextNode.ACenter)
@@ -48,6 +50,7 @@ class CatchUi:
             command=self._catch,
         )
         self.flower.setTransparency(TransparencyAttrib.MAlpha)
+        round_button(self.flower, radius=0.05)
         self.reward_button: DirectButton | None = None
 
     def _label(self, text: str, pos: tuple[float, float], scale: float, align) -> OnscreenText:
@@ -107,6 +110,8 @@ class CatchUi:
             relief=DGG.FLAT,
             command=lambda: self.app.end_extra_minigame(success=True, game_id=self._game_id),
         )
+        self.reward_button.setTransparency(TransparencyAttrib.MAlpha)
+        round_button(self.reward_button, radius=0.04)
 
     def _clear_reward(self) -> None:
         if self.reward_button is not None:

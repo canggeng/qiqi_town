@@ -7,6 +7,8 @@ from direct.gui.DirectGui import DirectButton, DirectFrame
 from direct.gui.OnscreenText import OnscreenText
 from panda3d.core import TextNode, TransparencyAttrib
 
+from qiqi_town.ui.roundrect import round_button, round_widget
+
 
 class EndingUi:
     def __init__(self, app) -> None:
@@ -27,6 +29,7 @@ class EndingUi:
             relief=DGG.FLAT,
         )
         panel.setTransparency(TransparencyAttrib.MAlpha)
+        round_widget(panel, radius=0.05)
         OnscreenText(
             parent=self.root,
             text="山顶的灯会",
@@ -52,7 +55,7 @@ class EndingUi:
             fg=(0.30, 0.26, 0.22, 1.0),
             mayChange=False,
         )
-        DirectButton(
+        button = DirectButton(
             parent=self.root,
             text="继续在小镇里逛逛",
             text_font=app.font,
@@ -64,6 +67,8 @@ class EndingUi:
             relief=DGG.FLAT,
             command=app.finish_ending,
         )
+        button.setTransparency(TransparencyAttrib.MAlpha)
+        round_button(button, radius=0.035)
 
     def show(self) -> None:
         self.root.show()
