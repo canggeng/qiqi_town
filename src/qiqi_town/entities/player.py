@@ -91,8 +91,7 @@ class PlayerController:
                 ny = current[1] + dy / distance * step
                 self._position = (nx, ny)
                 self.root.setPos(nx, ny, self.height_fn(nx, ny))
-                desired = math.atan2(dx, dy)
-                self._heading = _approach_angle(self._heading, desired, dt * 10.0)
+                self._heading = math.atan2(dx, dy)
                 self.root.setH(math.degrees(self._heading))
 
         self.rig.update(dt, self._moving)
@@ -100,10 +99,3 @@ class PlayerController:
 
 def _dist(a: Point, b: Point) -> float:
     return math.hypot(a[0] - b[0], a[1] - b[1])
-
-
-def _approach_angle(current: float, target: float, max_delta: float) -> float:
-    diff = (target - current + math.pi) % (2 * math.pi) - math.pi
-    if abs(diff) <= max_delta:
-        return target
-    return current + math.copysign(max_delta, diff)

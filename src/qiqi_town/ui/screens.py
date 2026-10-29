@@ -608,6 +608,27 @@ class UiManager:
             command=self._wrap_command(self.app.pause_game),
         )
         self.hud_menu_button.setTransparency(TransparencyAttrib.MAlpha)
+        self.hud_exit_button = DirectButton(
+            parent=self.hud_root,
+            text="出门",
+            text_font=self.font,
+            text_fg=(0.18, 0.16, 0.15, 1.0),
+            text_scale=0.032,
+            frameColor=(0.98, 0.92, 0.80, 0.95),
+            frameSize=(-0.12, 0.12, -0.045, 0.045),
+            pos=(0.81, 0, 0.89),
+            relief=DGG.FLAT,
+            command=self._wrap_command(self.app.exit_to_town),
+        )
+        self.hud_exit_button.setTransparency(TransparencyAttrib.MAlpha)
+        self.hud_exit_button.hide()
+
+    def set_interior(self, is_interior: bool) -> None:
+        if hasattr(self, "hud_exit_button"):
+            if is_interior:
+                self.hud_exit_button.show()
+            else:
+                self.hud_exit_button.hide()
 
     def update_hud(
         self,

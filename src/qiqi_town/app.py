@@ -204,7 +204,7 @@ class QiqiTownApp(ShowBase):
             hairstyle="bun",
             accessory="glasses",
         )
-        lin.root.setPos(1.6, 3.0, 0.0)
+        lin.root.setPos(1.5, -1.2, 0.0)
         lin.root.setH(180)
         self.npcs["lin"] = lin
 
@@ -375,8 +375,8 @@ class QiqiTownApp(ShowBase):
             Interactable(
                 "lin",
                 "和林老师说话",
-                (1.6, 3.0, 0.8),
-                (1.6, 1.9),
+                (1.5, -1.2, 0.8),
+                (1.5, -2.4),
                 self.talk_lin,
                 radius=2.4,
                 kind="npc",
@@ -638,27 +638,47 @@ class QiqiTownApp(ShowBase):
     def _mouse_to_ground(self) -> Point3 | None:
         if self.mouseWatcherNode is None or not self.mouseWatcherNode.hasMouse():
             return None
+        return self._screen_to_ground(self.mouseWatcherNode.getMouse())
+
+    def _screen_to_ground(self, mouse: Point2) -> Point3 | None:
         near = Point3()
         far = Point3()
-        self.camLens.extrude(self.mouseWatcherNode.getMouse(), near, far)
-        near_world = self.cam.getRelativePoint(self.render, near)
-        far_world = self.cam.getRelativePoint(self.render, far)
+        self.camLens.extrude(mouse, near, far)
+        # extrude 返回相机空间坐标；转换到世界空间要用 render 相对 cam。
+        near_world = self.render.getRelativePoint(self.cam, near)
+        far_world = self.render.getRelativePoint(self.cam, far)
         direction = far_world - near_world
         if abs(direction.z) < 1e-6:
             return None
-        # 先快速求平面交点，再沿线段采样地形高度；兼容山道斜坡。
+
+        # 平坦地面优先用解析交点，避免低角度点击时采样过粗。
         t_plane = (0.03 - near_world.z) / direction.z
-        if t_plane <= 0:
-            return None
-        steps = 120
+        if t_plane > 0:
+            plane_point = near_world + direction * t_plane
+            if (
+                abs(plane_point.x) <= WORLD_HALF - 1
+                and abs(plane_point.y) <= WORLD_HALF - 1
+                and abs(self._ground_height(plane_point.x, plane_point.y)) < 0.12
+            ):
+                return Point3(
+                    plane_point.x,
+                    plane_point.y,
+                    self._ground_height(plane_point.x, plane_point.y),
+                )
+
+        # 山道/斜坡：沿射线找第一次低于地面的位置。
+        steps = 240
+        last = near_world
         for i in range(1, steps + 1):
             t = i / steps
             point = near_world + direction * t
             if abs(point.x) > WORLD_HALF - 1 or abs(point.y) > WORLD_HALF - 1:
+                last = point
                 continue
             height = self._ground_height(point.x, point.y)
-            if point.z <= height + 0.05:
+            if point.z <= height + 0.05 and last.z > height:
                 return Point3(point.x, point.y, height)
+            last = point
         return None
 
     def _ground_height(self, x: float, y: float) -> float:
@@ -1197,6 +1217,7 @@ class QiqiTownApp(ShowBase):
             self._current_objective(),
             LOCATION_LABELS.get(self.current_scene_id, "青禾镇"),
         )
+        self.ui.set_interior(self.current_scene_id != "town")
 
     # ---------------------------------------------------------------- scenes
     def _activate_scene(

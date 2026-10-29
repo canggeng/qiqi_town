@@ -64,14 +64,22 @@ class DialogueUi:
             shadow=(1.0, 1.0, 1.0, 0.0),
             mayChange=True,
         )
+        self.continue_bg = DirectFrame(
+            parent=self.root,
+            frameColor=(0.98, 0.86, 0.64, 0.98),
+            frameSize=(-0.14, 0.14, -0.036, 0.036),
+            pos=(0.99, 0, -0.91),
+            relief=DGG.FLAT,
+        )
+        self.continue_bg.setTransparency(TransparencyAttrib.MAlpha)
         self.continue_text = OnscreenText(
             parent=self.root,
             text="点击继续",
             font=self.font,
-            pos=(1.12, -0.91),
+            pos=(0.99, -0.922),
             scale=0.026,
-            align=TextNode.ARight,
-            fg=(0.45, 0.40, 0.34, 0.9),
+            align=TextNode.ACenter,
+            fg=(0.34, 0.25, 0.18, 1.0),
             mayChange=True,
         )
         self.choice_buttons: list[DirectButton] = []
@@ -102,9 +110,9 @@ class DialogueUi:
             if self._shown_chars >= len(self._full_text):
                 self._on_typing_done()
         if self._shown_chars < len(self._full_text) or self._choice_ready:
-            self.continue_text.hide()
+            self._set_continue_visible(False)
         else:
-            self.continue_text.show()
+            self._set_continue_visible(True)
 
     def _display_current(self) -> None:
         if self.runner is None or self.runner.current is None:
@@ -115,7 +123,7 @@ class DialogueUi:
         self._shown_chars = 0.0
         self.body_text["text"] = ""
         self._choice_ready = False
-        self.continue_text.show()
+        self._set_continue_visible(True)
         self._clear_choices()
         # 有选项时，正文显示完后显示选项。
         if node.choices:
@@ -124,7 +132,7 @@ class DialogueUi:
             self._show_choices_when_ready = False
 
     def _on_typing_done(self) -> None:
-        self.continue_text.show()
+        self._set_continue_visible(True)
         if self.runner is not None and self.runner.current and self.runner.current.choices:
             self._choice_ready = True
             self._create_choices()
@@ -154,7 +162,15 @@ class DialogueUi:
             button.setTransparency(TransparencyAttrib.MAlpha)
             self.choice_buttons.append(button)
             y -= 0.095
-        self.continue_text.hide()
+        self._set_continue_visible(False)
+
+    def _set_continue_visible(self, visible: bool) -> None:
+        if visible:
+            self.continue_bg.show()
+            self.continue_text.show()
+        else:
+            self.continue_bg.hide()
+            self.continue_text.hide()
 
     def _clear_choices(self) -> None:
         for button in self.choice_buttons:
