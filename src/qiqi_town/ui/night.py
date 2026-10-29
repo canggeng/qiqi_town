@@ -48,6 +48,7 @@ class NightTransitionUi:
         self._timer = 0.0
         self._alpha = 0.0
         self._next_day = 1
+        self._night_message = "今天也辛苦啦。"
         self._on_midpoint: Callable[[], None] | None = None
         self._on_done: Callable[[], None] | None = None
 
@@ -56,8 +57,11 @@ class NightTransitionUi:
         next_day: int,
         on_midpoint: Callable[[], None],
         on_done: Callable[[], None],
+        *,
+        night_message: str | None = None,
     ) -> None:
         self._next_day = next_day
+        self._night_message = night_message or "今天也辛苦啦。"
         self._on_midpoint = on_midpoint
         self._on_done = on_done
         self._timer = 0.0
@@ -78,7 +82,7 @@ class NightTransitionUi:
                 self.phase = "night"
                 self._timer = 0.0
                 self.title["text"] = "晚安，淇淇。"
-                self.subtitle["text"] = "今天也辛苦啦。"
+                self.subtitle["text"] = self._night_message
                 self.title.show()
                 self.subtitle.show()
         elif self.phase == "night":

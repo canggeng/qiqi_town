@@ -1,0 +1,74 @@
+{
+  "mom_morning_1": {
+    "speaker": "妈妈",
+    "text": "早上好，淇淇。妈妈煮了甜甜的南瓜粥，喝完再去镇上玩吧。",
+    "choices": [
+      {
+        "text": "扑进妈妈怀里抱一抱。",
+        "next": "mom_morning_2a",
+        "effects": [{"type": "add_friendship", "npc": "mom", "amount": 1}]
+      },
+      {
+        "text": "亲亲妈妈的脸。",
+        "next": "mom_morning_2b",
+        "effects": [{"type": "add_friendship", "npc": "mom", "amount": 1}]
+      }
+    ]
+  },
+  "mom_morning_2a": {
+    "speaker": "妈妈",
+    "text": "哎哟，我的小宝贝。慢慢吃，不着急。"
+  },
+  "mom_morning_2b": {
+    "speaker": "妈妈",
+    "text": "妈妈也亲亲淇淇。今天也要开开心心的。"
+  },
+  "mom_afternoon_1": {
+    "speaker": "妈妈",
+    "text": "回来啦？来，让妈妈抱抱。今天在小镇上都玩了什么呀？",
+    "choices": [
+      {
+        "text": "抱抱妈妈，再亲一下。",
+        "next": "mom_afternoon_2a",
+        "effects": [{"type": "add_friendship", "npc": "mom", "amount": 1}]
+      },
+      {
+        "text": "把今天的事讲给妈妈听。",
+        "next": "mom_afternoon_2b",
+        "effects": [{"type": "add_friendship", "npc": "mom", "amount": 1}]
+      }
+    ]
+  },
+  "mom_afternoon_2a": {
+    "speaker": "妈妈",
+    "text": "妈妈把淇淇抱得高高的，又轻轻亲了亲额头。"
+  },
+  "mom_afternoon_2b": {
+    "speaker": "妈妈",
+    "text": "原来发生了这么多事。妈妈都听着呢。"
+  },
+  "mom_night_1": {
+    "speaker": "妈妈",
+    "text": "晚安，淇淇。今天累不累？要不要妈妈抱一抱再睡？",
+    "choices": [
+      {
+        "text": "要，抱抱再睡。",
+        "next": "mom_night_2a",
+        "effects": [{"type": "add_friendship", "npc": "mom", "amount": 1}]
+      },
+      {
+        "text": "亲亲妈妈，说晚安。",
+        "next": "mom_night_2b",
+        "effects": [{"type": "add_friendship", "npc": "mom", "amount": 1}]
+      }
+    ]
+  },
+  "mom_night_2a": {
+    "speaker": "妈妈",
+    "text": "妈妈抱着淇淇，轻轻拍着背。灯会那天，我们一起去山顶看灯。"
+  },
+  "mom_night_2b": {
+    "speaker": "妈妈",
+    "text": "晚安，做个好梦。妈妈就在隔壁。"
+  }
+}

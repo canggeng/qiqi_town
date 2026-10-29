@@ -239,6 +239,19 @@ class QiqiTownApp(ShowBase):
         shao.root.setH(180)
         self.npcs["shao"] = shao
 
+        mom = build_villager(
+            self.interiors["home"].root,
+            name="mom",
+            dress_color=(0.72, 0.46, 0.42, 1.0),
+            hair_color=(0.16, 0.11, 0.09, 1.0),
+            height_scale=1.08,
+            hairstyle="bob",
+            accessory="apron",
+        )
+        mom.root.setPos(2.3, -0.6, 0.0)
+        mom.root.setH(180)
+        self.npcs["mom"] = mom
+
         xiaoman = build_villager(
             self.scene.root,
             name="xiaoman",
@@ -384,6 +397,15 @@ class QiqiTownApp(ShowBase):
         ]
         home_interactables: list[Interactable] = [
             Interactable(
+                "mom",
+                "和妈妈说话",
+                (2.3, -0.6, 0.7),
+                (2.3, -1.8),
+                self.talk_mom,
+                radius=2.5,
+                kind="npc",
+            ),
+            Interactable(
                 "bed",
                 "睡觉",
                 (-3.1, 1.9, 0.7),
@@ -486,7 +508,7 @@ class QiqiTownApp(ShowBase):
         }
         self.scene_active_npcs = {
             "town": [self.npcs["xiaoman"], self.npcs["su"], self.npcs["chen"]],
-            "home": [],
+            "home": [self.npcs["mom"]],
             "kindergarten": [self.npcs["lin"], self.npcs["an"], self.npcs["shao"]],
             "library": [self.npcs["gu"]],
         }
@@ -930,6 +952,33 @@ class QiqiTownApp(ShowBase):
     def talk_shao(self) -> None:
         self.start_dialogue("shao_intro_1")
 
+    def talk_mom(self) -> None:
+        if self.clock.phase == "morning":
+            self.start_dialogue("mom_morning_1")
+        elif self.clock.phase == "dusk":
+            self.start_dialogue("mom_night_1")
+        else:
+            self.start_dialogue("mom_afternoon_1")
+
+    def _mom_auto_greeting(self) -> None:
+        if self.mode != "playing" or self.current_scene_id != "home":
+            return
+        day = self.clock.day
+        if self.clock.phase == "morning":
+            key = f"mom_morning_{day}"
+            message = "妈妈：早上好，淇淇。今天也要开开心心的。"
+        elif self.clock.phase == "dusk":
+            key = f"mom_night_{day}"
+            message = "妈妈：晚安，淇淇。做个好梦。"
+        else:
+            key = f"mom_hug_{day}"
+            message = "妈妈抱了抱淇淇，还亲了亲额头。"
+        if self.state.flags.get(key):
+            return
+        self.state.flags[key] = True
+        self.audio.play_sfx("success", volume=0.4)
+        self.ui.toast(message, 3.2)
+
     def talk_xiaoman(self) -> None:
         self.start_dialogue("xiaoman_intro_1")
 
@@ -1187,7 +1236,7 @@ class QiqiTownApp(ShowBase):
         added = False
         if self.current_scene_id == "town" and self.player.position[1] >= 31.0:
             added = self.state.add_sticker("sticker_summit") or added
-        friends = ("xiaoman", "lin", "gu", "su", "chen", "an", "shao")
+        friends = ("xiaoman", "lin", "gu", "su", "chen", "an", "shao", "mom")
         if all(self.state.friendship.get(name, 0) >= 1 for name in friends):
             added = self.state.add_sticker("sticker_friend_all") or added
         if len(self.state.stickers) >= 10:
@@ -1252,6 +1301,7 @@ class QiqiTownApp(ShowBase):
             self.clock.day + 1,
             self._advance_to_next_day,
             self._finish_night_transition,
+            night_message="妈妈轻轻抱了抱你：晚安，淇淇。",
         )
 
     def _advance_to_next_day(self) -> None:
@@ -1273,8 +1323,9 @@ class QiqiTownApp(ShowBase):
         self.ui.show_hud()
         self._update_hud()
         self._sync_state_from_world()
-        self._auto_save()
         self.ui.toast(f"第 {self.clock.day} 天开始了。", 2.0)
+        self._mom_auto_greeting()
+        self._auto_save()
 
     def show_ending(self) -> None:
         self.mode = "ending"
@@ -1368,6 +1419,7 @@ class QiqiTownApp(ShowBase):
         self._activate_scene(scene_id, self.interiors[scene_id].spawn, 0.0)
         names = {"home": "家", "kindergarten": "幼儿园", "library": "图书馆"}
         self.ui.toast(f"进入{names.get(scene_id, '房间')}。", 1.5)
+        self._mom_auto_greeting()
 
     def exit_to_town(self) -> None:
         spawns = {
@@ -1586,6 +1638,7 @@ class QiqiTownApp(ShowBase):
         self.ui.hide_confirm()
         self.ui.show_hud()
         self._update_hud()
+        self._mom_auto_greeting()
         if notify:
             self.ui.toast("已读取存档。")
 
