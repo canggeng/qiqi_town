@@ -78,9 +78,13 @@ class QiqiTownApp(ShowBase):
 
         self.settings_repo = SettingsRepository()
         self.settings = self.settings_repo.load()
+        if args.windowed:
+            self.settings.fullscreen = False
         self.save_repo = SaveRepository()
         self.font = self._load_font()
         self.audio = AudioSystem(self, self.settings)
+        if not args.smoke_test and self.settings.fullscreen:
+            self._apply_fullscreen(True)
         self._step_timer = 0.0
         self._last_audio_key: tuple[str, int, str] | None = None
         self.state = GameState.new_game()
@@ -646,6 +650,7 @@ class QiqiTownApp(ShowBase):
         self.accept("mouse1", self._on_left_click)
         self.accept("wheel_up", self._on_wheel_up)
         self.accept("wheel_down", self._on_wheel_down)
+        self.accept("f11", self.toggle_fullscreen)
         self.accept("window-close", self._on_window_close)
 
     # ---------------------------------------------------------------- input
@@ -1621,12 +1626,26 @@ class QiqiTownApp(ShowBase):
         )
 
     def toggle_fullscreen(self) -> None:
+        if self.args.smoke_test:
+            return
         self.settings.fullscreen = not self.settings.fullscreen
-        props = WindowProperties()
-        props.setFullscreen(self.settings.fullscreen)
-        self.win.requestProperties(props)
+        self._apply_fullscreen(self.settings.fullscreen)
         self.save_settings()
-        self.ui.toast("显示模式已切换。" if self.settings.fullscreen else "已切换到窗口模式。")
+        self.ui.toast("已进入全屏模式（F11 切换）。" if self.settings.fullscreen else "已切换到窗口模式（F11 切换）。")
+
+    def _apply_fullscreen(self, enabled: bool) -> None:
+        props = WindowProperties()
+        if enabled:
+            # 无边框全屏比切换显示分辨率更稳，不会因显卡/远程桌面拒绝模式切换。
+            props.setFullscreen(False)
+            props.setUndecorated(True)
+            props.setOrigin(0, 0)
+            props.setSize(self.pipe.getDisplayWidth(), self.pipe.getDisplayHeight())
+        else:
+            props.setFullscreen(False)
+            props.setUndecorated(False)
+            props.setSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.win.requestProperties(props)
 
     def open_save_folder(self) -> None:
         try:

@@ -39,7 +39,11 @@ $DistDir = Join-Path $Root "dist\QiqiTown"
 Copy-Item (Join-Path $Root "README.md") (Join-Path $DistDir "README.md") -Force
 Copy-Item (Join-Path $Root "CREDITS.md") (Join-Path $DistDir "CREDITS.md") -Force
 Copy-Item (Join-Path $Root "src\qiqi_town\assets\fonts\OFL-NotoSansSC.txt") (Join-Path $DistDir "FONT-LICENSE-NotoSansSC.txt") -Force
+Copy-Item (Join-Path $Root "tools\start_game.bat") (Join-Path $DistDir "START_GAME.bat") -Force
+Copy-Item (Join-Path $Root "tools\PORTABLE_README.txt") (Join-Path $DistDir "README-PORTABLE.txt") -Force
+Unblock-File -LiteralPath $Exe -ErrorAction SilentlyContinue
 $Zip = Join-Path $Root "dist\QiqiTown_v${Version}_windows_x64.zip"
 if (Test-Path $Zip) { Remove-Item $Zip -Force }
 Compress-Archive -Path (Join-Path $DistDir "*") -DestinationPath $Zip
+Unblock-File -LiteralPath $Zip -ErrorAction SilentlyContinue
 Write-Host "Done: $Zip"

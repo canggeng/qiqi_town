@@ -206,11 +206,12 @@ class UiManager:
         self._button(self.title_root, "新的故事", (0, 0.06), self.app.new_game)
         self._button(self.title_root, "读取存档", (0, -0.08), lambda: self.show_save("load"))
         self._button(self.title_root, "设置", (0, -0.22), self.app.open_settings)
-        self._button(self.title_root, "退出游戏", (0, -0.36), self.app.quit_game, dark=True)
+        self._button(self.title_root, "全屏 (F11)", (0, -0.36), self.app.toggle_fullscreen)
+        self._button(self.title_root, "退出游戏", (0, -0.50), self.app.quit_game, dark=True)
         self._label(
             self.title_root,
             "鼠标操作 · 温馨小镇生活",
-            (0.0, -0.63),
+            (0.0, -0.68),
             0.032,
             TextNode.ACenter,
             fg=(0.95, 0.88, 0.76, 0.9),
@@ -240,8 +241,9 @@ class UiManager:
         self._button(self.pause_root, "读取存档", (0, 0.20), lambda: self.show_save("load"))
         self._button(self.pause_root, "日记", (0, 0.07), self.app.open_diary)
         self._button(self.pause_root, "设置", (0, -0.06), self.app.open_settings)
-        self._button(self.pause_root, "返回标题", (0, -0.19), self.app.return_to_title)
-        self._button(self.pause_root, "退出游戏", (0, -0.32), self.app.quit_game, dark=True)
+        self._button(self.pause_root, "全屏 (F11)", (0, -0.19), self.app.toggle_fullscreen)
+        self._button(self.pause_root, "返回标题", (0, -0.32), self.app.return_to_title)
+        self._button(self.pause_root, "退出游戏", (0, -0.45), self.app.quit_game, dark=True)
 
     def show_pause(self) -> None:
         self._show_only(self.pause_root)
@@ -451,7 +453,7 @@ class UiManager:
             (settings.camera_sensitivity - 0.2) / 2.8,
             self._on_camera,
         )
-        self._button(self.settings_root, "窗口 / 全屏", (0, -0.49), self.app.toggle_fullscreen, width=0.52, height=0.075, text_scale=0.03)
+        self._button(self.settings_root, "切换全屏 (F11)", (0, -0.49), self.app.toggle_fullscreen, width=0.52, height=0.075, text_scale=0.03)
         self._button(self.settings_root, "打开存档文件夹", (0, -0.59), self.app.open_save_folder, width=0.52, height=0.07, text_scale=0.026)
         self._button(self.settings_root, "返回", (0, -0.68), self.back_from_settings, width=0.42, height=0.07, text_scale=0.03)
         self._refresh_settings_labels()
@@ -564,6 +566,14 @@ class UiManager:
 
     # --------------------------------------------------------------- hud
     def _build_hud(self) -> None:
+        self.hud_panel = DirectFrame(
+            parent=self.hud_root,
+            frameColor=(0.99, 0.94, 0.82, 0.74),
+            frameSize=(-1.33, -0.30, 0.66, 0.95),
+            relief=DGG.FLAT,
+        )
+        self.hud_panel.setTransparency(TransparencyAttrib.MAlpha)
+        round_widget(self.hud_panel, radius=0.035)
         self.hud_title = self._label(
             self.hud_root,
             "青禾镇 · 第 1 天",
