@@ -39,13 +39,21 @@ from qiqi_town.core.state import GameState, MinigameState, QuestState
 from qiqi_town.entities.camera_rig import CameraRig
 from qiqi_town.entities.player import PlayerController
 from qiqi_town.paths import app_data_root, assets_dir, build_dir, saves_dir
+from qiqi_town.systems.audio import AudioSystem
+from qiqi_town.systems.daily_content import GameSlot, slot_by_id, slot_for
 from qiqi_town.systems.dialogue import DialogueRunner
 from qiqi_town.systems.dialogue_data import load_dialogue_nodes
+from qiqi_town.systems.minigames.find_game import default_find_game
+from qiqi_town.systems.tutorial import Tutorial
+from qiqi_town.ui.catch_game import CatchUi
 from qiqi_town.ui.dialogue import DialogueUi
 from qiqi_town.ui.diary import DiaryUi
 from qiqi_town.ui.ending import EndingUi
+from qiqi_town.ui.memory import MemoryUi
 from qiqi_town.ui.minigame import MinigameUi
+from qiqi_town.ui.rhythm import RhythmUi
 from qiqi_town.ui.screens import UiManager
+from qiqi_town.ui.story_order import StoryOrderUi
 from qiqi_town.world import meshkit
 from qiqi_town.world.character_builder import build_qiqi, build_villager
 from qiqi_town.world.interactables import Interactable
@@ -71,6 +79,9 @@ class QiqiTownApp(ShowBase):
         self.settings = self.settings_repo.load()
         self.save_repo = SaveRepository()
         self.font = self._load_font()
+        self.audio = AudioSystem(self, self.settings)
+        self._step_timer = 0.0
+        self._last_audio_key: tuple[str, int, str] | None = None
         self.state = GameState.new_game()
         self.clock = GameClock(day=1, minutes=8 * 60, paused=True)
 
@@ -102,8 +113,14 @@ class QiqiTownApp(ShowBase):
         self._setup_marker()
         self._setup_hover()
         self._setup_npcs()
+        self._setup_find_game()
+        self._setup_events()
         self.dialogue_ui = DialogueUi(self)
         self.minigame_ui = MinigameUi(self)
+        self.story_order_ui = StoryOrderUi(self)
+        self.rhythm_ui = RhythmUi(self)
+        self.catch_ui = CatchUi(self)
+        self.memory_ui = MemoryUi(self)
         self.dialogue_nodes = load_dialogue_nodes()
         self._pending_interaction: Interactable | None = None
         self._hovered: Interactable | None = None
@@ -114,7 +131,9 @@ class QiqiTownApp(ShowBase):
         self.ui = UiManager(self)
         self.diary_ui = DiaryUi(self)
         self.ending_ui = EndingUi(self)
+        self.tutorial = Tutorial(self)
         self.ui.show_title()
+        self._update_music_for_state()
 
         self.taskMgr.add(self._update, "qiqi_update")
         self.accept("escape", self._on_escape)
@@ -304,6 +323,33 @@ class QiqiTownApp(ShowBase):
                 radius=2.6,
                 kind="view",
             ),
+            Interactable(
+                "swing_game",
+                "玩秋千节奏",
+                (-17.2, -14.8, 0.9),
+                (-17.2, -16.2),
+                self.start_rhythm_game,
+                radius=2.4,
+                kind="game",
+            ),
+            Interactable(
+                "park_catch",
+                "接住花瓣",
+                (13.0, -12.0, 0.9),
+                (13.0, -13.1),
+                self.start_catch_game,
+                radius=2.4,
+                kind="game",
+            ),
+            Interactable(
+                "memory_game",
+                "玩山路记忆",
+                (2.8, 14.8, 1.4),
+                (2.8, 13.4),
+                self.start_memory_game,
+                radius=2.4,
+                kind="game",
+            ),
         ]
         home_interactables: list[Interactable] = [
             Interactable(
@@ -356,6 +402,15 @@ class QiqiTownApp(ShowBase):
         ]
         library_interactables: list[Interactable] = [
             Interactable(
+                "story_game",
+                "整理故事卡片",
+                (0.0, 0.8, 0.9),
+                (0.0, -0.4),
+                self.start_story_game,
+                radius=2.4,
+                kind="game",
+            ),
+            Interactable(
                 "gu",
                 "和顾爷爷说话",
                 (-2.0, 2.1, 0.8),
@@ -388,6 +443,146 @@ class QiqiTownApp(ShowBase):
         }
         self.interactables = self.scene_interactables["town"]
         self.active_npcs = self.scene_active_npcs["town"]
+
+    def _setup_find_game(self) -> None:
+        self.find_game = default_find_game()
+        self._find_slot: GameSlot | None = None
+        self.find_nodes: dict[str, object] = {}
+        self.find_interactable_ids: set[str] = set()
+        self._sparkle_time = 0.0
+        for target_id, (x, y, z) in self.find_game.targets.items():
+            group = self.scene.root.attachNewNode(f"sparkle_{target_id}")
+            group.setPos(x, y, z)
+            meshkit.add_sphere(
+                group,
+                "sparkle_core",
+                (0, 0, 0),
+                0.18,
+                (1.0, 0.88, 0.40, 1.0),
+                rings=8,
+                segments=12,
+            )
+            meshkit.add_disc(
+                group,
+                "sparkle_ring",
+                (0, 0, -z + 0.04),
+                0.34,
+                (1.0, 0.78, 0.28, 0.38),
+                segments=18,
+                alpha=0.38,
+            )
+            group.hide()
+            self.find_nodes[target_id] = group
+        meshkit.add_box(
+            self.scene.root,
+            "find_sign_post",
+            (4.0, -3.0, 0.7),
+            (0.12, 0.12, 1.4),
+            PALETTE["wood_dark"],
+        )
+        meshkit.add_box(
+            self.scene.root,
+            "find_sign_board",
+            (4.0, -3.0, 1.35),
+            (1.4, 0.1, 0.55),
+            PALETTE["honey"],
+        )
+        self.town_interactables.append(
+            Interactable(
+                "find_game",
+                "玩小镇找一找",
+                (4.0, -3.0, 1.2),
+                (4.0, -4.4),
+                self.start_find_game,
+                radius=2.4,
+                kind="game",
+            )
+        )
+
+    def _setup_events(self) -> None:
+        # 简单的场景道具，让环境事件有可见的落点。
+        town = self.scene.root
+        library = self.interiors["library"].root
+        kindergarten = self.interiors["kindergarten"].root
+        meshkit.add_box(town, "notice_post", (-4.0, 4.0, 0.7), (0.1, 0.1, 1.4), PALETTE["wood_dark"])
+        meshkit.add_box(town, "notice_board", (-4.0, 4.0, 1.4), (1.5, 0.1, 0.8), PALETTE["honey"])
+        meshkit.add_box(town, "picnic_blanket", (22.0, -14.0, 0.02), (2.4, 1.8, 0.03), (0.82, 0.45, 0.40, 1.0))
+        meshkit.add_cylinder(town, "picnic_basket", (23.0, -14.0, 0.05), 0.28, 0.24, 0.35, PALETTE["wood"], segments=12)
+        meshkit.add_sphere(town, "tree_balloon", (-16.5, -13.5, 2.4), 0.22, PALETTE["balloon"], rings=8, segments=12)
+        meshkit.add_line(town, "tree_balloon_string", (-16.5, -13.5, 2.18), (-16.5, -13.5, 1.5), PALETTE["lace"], thickness=1.0)
+        meshkit.add_sphere(town, "squirrel_body", (2.0, 20.0, 3.0), 0.16, (0.55, 0.36, 0.23, 1.0), rings=7, segments=10, scale=(1.0, 1.2, 0.8))
+        meshkit.add_sphere(town, "squirrel_head", (2.0, 20.15, 3.15), 0.10, (0.62, 0.42, 0.27, 1.0), rings=6, segments=9)
+        meshkit.add_sphere(town, "squirrel_tail", (1.82, 19.9, 3.2), 0.12, (0.48, 0.30, 0.20, 1.0), rings=6, segments=9, scale=(0.7, 0.8, 1.4))
+        meshkit.add_box(kindergarten, "art_red", (-0.9, 4.28, 1.6), (0.55, 0.06, 0.7), PALETTE["coral"])
+        meshkit.add_box(kindergarten, "art_yellow", (0.0, 4.28, 1.6), (0.55, 0.06, 0.7), PALETTE["honey"])
+        meshkit.add_box(kindergarten, "art_blue", (0.9, 4.28, 1.6), (0.55, 0.06, 0.7), PALETTE["water"])
+        meshkit.add_box(kindergarten, "lost_mitten", (-4.6, 2.4, 0.12), (0.34, 0.24, 0.12), (0.93, 0.45, 0.42, 1.0))
+        # 图书馆的猫。
+        meshkit.add_sphere(library, "cat_body", (3.8, 2.2, 0.3), 0.28, (0.95, 0.72, 0.46, 1.0), rings=8, segments=12, scale=(1.2, 0.9, 0.6))
+        meshkit.add_sphere(library, "cat_head", (4.0, 2.2, 0.5), 0.18, (0.97, 0.76, 0.52, 1.0), rings=7, segments=10)
+        for x in (-0.08, 0.08):
+            meshkit.add_box(library, "cat_ear", (4.0 + x, 2.2, 0.66), (0.09, 0.04, 0.12), (0.80, 0.54, 0.38, 1.0))
+        meshkit.add_sphere(library, "cat_tail", (3.45, 2.2, 0.26), 0.08, (0.88, 0.62, 0.40, 1.0), rings=5, segments=8, scale=(1.6, 0.7, 0.7))
+
+        town_events = [
+            ("notice", "看看广场告示牌", (-4.0, 4.0, 1.3), (-4.0, 2.8)),
+            ("fountain", "在喷泉边许愿", (0.0, 0.0, 1.2), (0.0, 3.2)),
+            ("ducks", "看看鸭子一家", (15.5, -10.5, 0.6), (15.5, -9.4)),
+            ("scarf", "长椅上的围巾", (22.0, -14.0, 0.8), (22.0, -15.2)),
+            ("balloon", "树上的气球", (-16.5, -13.5, 2.3), (-16.5, -14.8)),
+            ("sandcastle", "沙坑里的城堡", (-20.0, -14.0, 0.6), (-20.0, -15.5)),
+            ("squirrel", "山道边的松鼠", (2.0, 20.0, 3.1), (2.0, 18.8)),
+            ("lantern", "山顶的灯笼", (2.5, 33.5, 7.4), (2.5, 32.2)),
+        ]
+        for event_id, label, pos, approach in town_events:
+            self.town_interactables.append(
+                Interactable(
+                    f"event_{event_id}",
+                    label,
+                    pos,
+                    approach,
+                    lambda eid=event_id: self.trigger_event(eid),
+                    radius=2.5,
+                    kind="event",
+                )
+            )
+        for event_id, label, pos, approach in [
+            ("cat", "看看猫窝里的团子", (3.8, 2.2, 0.7), (3.8, 1.0)),
+            ("books", "地上的书", (-1.6, 2.0, 0.8), (-2.6, 0.8)),
+        ]:
+            self.scene_interactables["library"].append(
+                Interactable(
+                    f"event_{event_id}",
+                    label,
+                    pos,
+                    approach,
+                    lambda eid=event_id: self.trigger_event(eid),
+                    radius=2.5,
+                    kind="event",
+                )
+            )
+        for event_id, label, pos, approach in [
+            ("art", "教室里的画", (0.0, 4.2, 1.6), (0.0, 3.0)),
+            ("mitten", "储物格下的小手套", (-4.6, 2.4, 0.5), (-4.6, 1.2)),
+        ]:
+            self.scene_interactables["kindergarten"].append(
+                Interactable(
+                    f"event_{event_id}",
+                    label,
+                    pos,
+                    approach,
+                    lambda eid=event_id: self.trigger_event(eid),
+                    radius=2.5,
+                    kind="event",
+                )
+            )
+
+    def trigger_event(self, event_id: str) -> None:
+        flag = f"event_{event_id}_seen"
+        if self.state.flags.get(flag):
+            self.ui.toast("这里已经看过啦。", 1.6)
+            return
+        self.start_dialogue(f"ev_{event_id}_1")
 
     def _setup_input(self) -> None:
         self.accept("mouse1", self._on_left_click)
@@ -487,12 +682,29 @@ class QiqiTownApp(ShowBase):
             self.player.update(dt)
             self.clock.tick(dt)
             self.state.playtime_seconds += dt
+            if self.find_game.active:
+                self._sparkle_time += dt
+                for index, node in enumerate(self.find_nodes.values()):
+                    node.setR(self._sparkle_time * 70 + index * 40)
+                    node.setScale(1.0 + math.sin(self._sparkle_time * 3 + index) * 0.12)
+            if self.player.moving:
+                self._step_timer -= dt
+                if self._step_timer <= 0:
+                    self.audio.play_sfx("step", volume=0.35)
+                    self._step_timer = 0.36
+            else:
+                self._step_timer = 0.0
             self._update_orbit(dt)
             self._update_marker(dt)
             self._update_hint(dt)
             self._update_hover()
             self._update_pending_interaction()
             self._update_hud()
+            audio_key = (self.current_scene_id, self.clock.day, self.clock.phase)
+            if audio_key != self._last_audio_key:
+                self._last_audio_key = audio_key
+                self._update_music_for_state()
+            self._check_sticker_milestones()
         elif self.mode == "dialogue":
             self.player.rig.update(dt, False)
             self.dialogue_ui.update(dt)
@@ -500,6 +712,10 @@ class QiqiTownApp(ShowBase):
         elif self.mode in {"minigame", "diary", "ending"}:
             self.player.rig.update(dt, False)
             self.hover_ring.hide()
+            if self.mode == "minigame":
+                self.rhythm_ui.update(dt)
+                self.catch_ui.update(dt)
+                self.memory_ui.update(dt)
         else:
             self.player.rig.update(dt, False)
             self.hover_ring.hide()
@@ -661,6 +877,7 @@ class QiqiTownApp(ShowBase):
         self._pending_interaction = None
         self.hover_ring.hide()
         self.ui.hide_all()
+        self.audio.play_sfx("page")
         self.dialogue_ui.show(runner)
 
     def end_dialogue(self) -> None:
@@ -676,50 +893,195 @@ class QiqiTownApp(ShowBase):
                 self.show_ending()
                 return
             self.ui.toast("今天的主线完成啦！回家找妈妈睡觉吧。", 3.0)
+            self._check_sticker_milestones()
             self._auto_save()
 
     # ---------------------------------------------------------------- minigames
-    def start_shape_game(self) -> None:
-        self.start_minigame("day1_shapes")
+    def _slot_for_kind(self, kind: str) -> GameSlot | None:
+        slot = slot_for(self.clock.day, kind)
+        if slot is None:
+            self.ui.toast("今天的小游戏不在这个地点，看看日记里的安排吧。", 2.6)
+        return slot
 
-    def start_minigame(self, game_id: str) -> None:
+    def _begin_aux_minigame(self) -> bool:
         if self.mode != "playing":
-            return
+            return False
+        self.audio.play_sfx("click")
         self.mode = "minigame"
         self.clock.paused = True
         self.player.stop()
         self._pending_interaction = None
         self.hover_ring.hide()
         self.ui.hide_all()
+        return True
+
+    def start_shape_game(self) -> None:
+        slot = self._slot_for_kind("shape")
+        if slot is not None:
+            self.start_minigame(slot.id)
+
+    def start_story_game(self) -> None:
+        slot = self._slot_for_kind("story")
+        if slot is not None and self._begin_aux_minigame():
+            self.story_order_ui.start(slot.id)
+
+    def start_rhythm_game(self) -> None:
+        slot = self._slot_for_kind("rhythm")
+        if slot is not None and self._begin_aux_minigame():
+            self.rhythm_ui.start(slot.id)
+
+    def start_catch_game(self) -> None:
+        slot = self._slot_for_kind("catch")
+        if slot is not None and self._begin_aux_minigame():
+            self.catch_ui.start(slot.id)
+
+    def start_memory_game(self) -> None:
+        slot = self._slot_for_kind("memory")
+        if slot is not None and self._begin_aux_minigame():
+            self.memory_ui.start(slot.id)
+
+    def start_find_game(self) -> None:
+        if self.mode != "playing" or self.current_scene_id != "town":
+            self.ui.toast("回中心广场再开始找一找吧。")
+            return
+        if self.find_game.active:
+            return
+        slot = self._slot_for_kind("find")
+        if slot is None:
+            return
+        self._find_slot = slot
+        self.find_game.start()
+        for node in self.find_nodes.values():
+            node.show()
+        approaches = {
+            "fountain": (3.8, 1.8),
+            "park": (13.0, -11.0),
+            "playground": (-18.0, -10.6),
+            "library": (-12.0, -1.6),
+            "trail": (0.0, 21.0),
+        }
+        for target_id, (x, y, z) in self.find_game.targets.items():
+            interaction_id = f"find_sparkle_{target_id}"
+            self.find_interactable_ids.add(interaction_id)
+            self.town_interactables.append(
+                Interactable(
+                    interaction_id,
+                    self.find_game.labels.get(target_id, "闪光的小东西"),
+                    (x, y, z),
+                    approaches.get(target_id, (x, y - 1.0)),
+                    lambda tid=target_id: self._collect_sparkle(tid),
+                    radius=2.4,
+                    kind="sparkle",
+                )
+            )
+        self.audio.play_sfx("page")
+        self.ui.toast(f"今日小游戏：{slot.title}。小镇里藏着 5 个闪光的小东西。", 3.0)
+        self._update_hud()
+
+    def _collect_sparkle(self, target_id: str) -> None:
+        result = self.find_game.collect(target_id)
+        if result not in {"collected", "complete"}:
+            return
+        node = self.find_nodes.get(target_id)
+        if node is not None:
+            node.hide()
+        interaction_id = f"find_sparkle_{target_id}"
+        self.find_interactable_ids.discard(interaction_id)
+        self.town_interactables[:] = [
+            item for item in self.town_interactables if item.id != interaction_id
+        ]
+        self.audio.play_sfx("success", volume=0.6)
+        if result == "complete":
+            self.find_game.stop()
+            for item in self.find_nodes.values():
+                item.hide()
+            slot = self._find_slot
+            self._find_slot = None
+            if slot is not None:
+                previous = self.state.minigames.get(slot.id)
+                plays = (previous.plays if previous else 0) + 1
+                self.state.minigames[slot.id] = MinigameState(completed=True, best=5, plays=plays)
+                self.state.add_sticker(slot.sticker)
+                self.state.add_journal(slot.journal)
+                self.state.add_friendship(slot.friend, 1)
+            self.ui.toast("找到了全部闪光！获得回忆贴纸：小镇侦探。", 3.2)
+            self._sync_state_from_world()
+            self._auto_save()
+        else:
+            self.ui.toast(f"找到一个闪光（{len(self.find_game.found)}/{self.find_game.total}）。", 2.0)
+        self._update_hud()
+
+    def _stop_find_game(self, *, silent: bool = False) -> None:
+        if not hasattr(self, "find_game"):
+            return
+        self.find_game.stop()
+        self._find_slot = None
+        for node in self.find_nodes.values():
+            node.hide()
+        for interaction_id in list(self.find_interactable_ids):
+            self.town_interactables[:] = [
+                item for item in self.town_interactables if item.id != interaction_id
+            ]
+        self.find_interactable_ids.clear()
+        if not silent:
+            self.ui.toast("找一找先停下来了。", 1.8)
+
+    def start_minigame(self, game_id: str) -> None:
+        if not self._begin_aux_minigame():
+            return
         self.minigame_ui.start(game_id)
 
     def end_minigame(self, *, success: bool, game_id: str) -> None:
         self.minigame_ui.hide()
+        self._finish_minigame_result(success=success, game_id=game_id)
+
+    def end_extra_minigame(self, *, success: bool, game_id: str) -> None:
+        self.story_order_ui.hide()
+        self.rhythm_ui.hide()
+        self.catch_ui.hide()
+        self.memory_ui.hide()
+        self._finish_minigame_result(success=success, game_id=game_id)
+
+    def _finish_minigame_result(self, *, success: bool, game_id: str) -> None:
         self.mode = "playing"
         self.clock.paused = False
         self.ui.show_hud()
         self._update_hud()
         if not success:
+            self.audio.play_sfx("error")
             self.ui.toast("下次再玩吧。", 1.8)
             return
-
+        self.audio.play_sfx("success")
         previous = self.state.minigames.get(game_id)
         plays = (previous.plays if previous else 0) + 1
         best = max(previous.best if previous else 0, 3)
         self.state.minigames[game_id] = MinigameState(completed=True, best=best, plays=plays)
-        rewards = {
-            "day1_shapes": ("sticker_shapes", "journal_shapes"),
-        }
-        sticker_id, journal_id = rewards.get(game_id, ("", ""))
-        new_sticker = bool(sticker_id) and self.state.add_sticker(sticker_id)
-        if journal_id:
-            self.state.add_journal(journal_id)
-        self.state.add_friendship("lin", 1)
-        if new_sticker:
-            self.ui.toast("获得回忆贴纸：形状小管家！", 2.6)
+        slot = slot_by_id(game_id)
+        if slot is not None:
+            new_sticker = self.state.add_sticker(slot.sticker)
+            self.state.add_journal(slot.journal)
+            self.state.add_friendship(slot.friend, 1)
+            name = slot.title
         else:
-            self.ui.toast("又完成了一次形状配对。", 2.0)
+            fallback = {
+                "day1_shapes": ("sticker_shapes", "journal_shapes", "lin", "形状小管家"),
+                "library_story": ("sticker_story", "journal_story", "gu", "故事排排队"),
+                "playground_rhythm": ("sticker_swing", "journal_swing", "chen", "秋千节奏"),
+                "park_catch": ("sticker_ducks", "journal_ducks", "su", "接住花瓣"),
+                "mountain_memory": ("sticker_memory", "journal_memory", "zhou", "山路记忆"),
+            }
+            sticker, journal, friend, name = fallback.get(game_id, ("", "", "", "小游戏"))
+            new_sticker = bool(sticker) and self.state.add_sticker(sticker)
+            if journal:
+                self.state.add_journal(journal)
+            if friend:
+                self.state.add_friendship(friend, 1)
+        if new_sticker:
+            self.ui.toast(f"获得回忆贴纸：{name}！", 2.6)
+        else:
+            self.ui.toast(f"又完成了一次{name}。", 2.0)
         self._sync_state_from_world()
+        self._check_sticker_milestones()
         self._auto_save()
 
     # ---------------------------------------------------------------- quests/day
@@ -727,10 +1089,32 @@ class QiqiTownApp(ShowBase):
         quest = self.state.quests.get(f"day{day}_main")
         return quest is not None and quest.status == "complete"
 
+    def _check_sticker_milestones(self) -> bool:
+        added = False
+        if self.current_scene_id == "town" and self.player.position[1] >= 31.0:
+            added = self.state.add_sticker("sticker_summit") or added
+        friends = ("xiaoman", "lin", "gu", "su", "chen")
+        if all(self.state.friendship.get(name, 0) >= 1 for name in friends):
+            added = self.state.add_sticker("sticker_friend_all") or added
+        if len(self.state.stickers) >= 10:
+            added = self.state.add_sticker("sticker_diary") or added
+        if all(
+            self.state.flags.get(f"event_{name}_seen")
+            for name in ("books", "cat", "notice")
+        ):
+            added = self.state.add_sticker("sticker_rain") or added
+        if added:
+            self.ui.toast("获得新的回忆贴纸！", 2.2)
+        return added
+
     def _day1_complete(self) -> bool:
         return self._daily_complete(1)
 
     def _current_objective(self) -> str:
+        if getattr(self, "find_game", None) is not None and self.find_game.active:
+            return (
+                f"目标：找到小镇里的闪光（{len(self.find_game.found)}/{self.find_game.total}）"
+            )
         if self.state.story_complete:
             return "目标：在小镇里自由生活"
         day = self.clock.day
@@ -786,15 +1170,21 @@ class QiqiTownApp(ShowBase):
         self._pending_interaction = None
         self.hover_ring.hide()
         self.ui.hide_all()
+        self.audio.play_music("dusk")
+        self.audio.stop_ambient()
+        self.audio.play_sfx("lantern")
         self.ending_ui.show()
         self._sync_state_from_world()
         self._auto_save()
 
     def finish_ending(self) -> None:
+        self.audio.play_sfx("choose")
         self.ending_ui.hide()
         self.mode = "playing"
         self.clock.paused = False
         self.ui.show_hud()
+        self._last_audio_key = None
+        self._update_music_for_state()
         self._update_hud()
         self._auto_save()
 
@@ -815,6 +1205,12 @@ class QiqiTownApp(ShowBase):
         position: tuple[float, float] | None = None,
         facing: float = 0.0,
     ) -> None:
+        if (
+            hasattr(self, "find_game")
+            and self.find_game.active
+            and scene_id != "town"
+        ):
+            self._stop_find_game(silent=True)
         if scene_id not in self.scene_roots:
             scene_id = "town"
         for sid, root in self.scene_roots.items():
@@ -847,11 +1243,14 @@ class QiqiTownApp(ShowBase):
         if hasattr(self, "hover_ring"):
             self.hover_ring.hide()
         self.camera_rig.snap_to(self.player.position, self.player.z)
+        self._last_audio_key = None
+        self._update_music_for_state()
         self._update_hud()
 
     def enter_interior(self, scene_id: str) -> None:
         if scene_id not in self.interiors:
             return
+        self.audio.play_sfx("door")
         self._activate_scene(scene_id, self.interiors[scene_id].spawn, 0.0)
         names = {"home": "家", "kindergarten": "幼儿园", "library": "图书馆"}
         self.ui.toast(f"进入{names.get(scene_id, '房间')}。", 1.5)
@@ -862,6 +1261,7 @@ class QiqiTownApp(ShowBase):
             "kindergarten": (12.0, 0.8),
             "library": (-14.0, -0.3),
         }
+        self.audio.play_sfx("door")
         position = spawns.get(self.current_scene_id, self.town_scene.player_start)
         self._activate_scene("town", position, 0.0)
 
@@ -939,9 +1339,13 @@ class QiqiTownApp(ShowBase):
         self.ui.show_confirm("返回标题？当前未保存的进度会丢失。", self._do_return_to_title)
 
     def _do_return_to_title(self) -> None:
+        self.tutorial.stop()
         self.mode = "title"
         self.clock.paused = True
         self.player.stop()
+        self.audio.stop_all()
+        self.audio.play_music("town_day")
+        self.audio.play_ambient("ambience_town")
         self.ui.show_title()
 
     def quit_game(self) -> None:
@@ -961,6 +1365,8 @@ class QiqiTownApp(ShowBase):
             self._begin_new_game()
 
     def _begin_new_game(self, *, auto_save: bool = True) -> None:
+        if hasattr(self, "find_game") and self.find_game.active:
+            self._stop_find_game(silent=True)
         self.state = GameState.new_game()
         self.state.location = "town"
         self.state.player.x, self.state.player.y = self.town_scene.player_start
@@ -973,6 +1379,7 @@ class QiqiTownApp(ShowBase):
         self.ui.show_hud()
         self._update_hud()
         self.ui.toast("新的一天开始了。")
+        self.tutorial.start()
         self._sync_state_from_world()
         if auto_save:
             self._auto_save()
@@ -1016,8 +1423,10 @@ class QiqiTownApp(ShowBase):
         try:
             self.save_repo.save_manual(slot, self.state)
         except SaveError as exc:
+            self.audio.play_sfx("error")
             self.ui.toast(f"保存失败：{exc.message}")
             return
+        self.audio.play_sfx("save")
         self.ui.refresh_save()
         self.ui.toast(f"已保存到槽位 {slot:02d}。")
 
@@ -1025,20 +1434,26 @@ class QiqiTownApp(ShowBase):
         try:
             state = self.save_repo.load("auto" if is_auto else slot)
         except SaveError as exc:
+            self.audio.play_sfx("error")
             self.ui.toast(f"读取失败：{exc.message}")
             return
+        self.audio.play_sfx("choose")
         self.apply_state(state)
 
     def _delete_slot(self, slot: int) -> None:
         try:
             self.save_repo.delete_manual(slot)
         except SaveError as exc:
+            self.audio.play_sfx("error")
             self.ui.toast(f"删除失败：{exc.message}")
             return
+        self.audio.play_sfx("choose")
         self.ui.refresh_save()
         self.ui.toast(f"槽位 {slot:02d} 已删除。")
 
     def apply_state(self, state: GameState, *, notify: bool = False) -> None:
+        if hasattr(self, "find_game") and self.find_game.active:
+            self._stop_find_game(silent=True)
         self.state = state
         self.clock = GameClock(day=state.day, minutes=state.time_minutes)
         self.clock.paused = False
@@ -1067,10 +1482,26 @@ class QiqiTownApp(ShowBase):
         except SaveError:
             pass
 
+    # ---------------------------------------------------------------- audio
+    def _update_music_for_state(self) -> None:
+        if self.current_scene_id == "town":
+            track = "dusk" if (self.clock.day == 5 or self.clock.phase == "dusk") else "town_day"
+            ambient = "ambience_town"
+        else:
+            track = "interior"
+            ambient = "ambience_interior"
+        self.audio.play_music(track)
+        self.audio.play_ambient(ambient)
+
     # ---------------------------------------------------------------- settings
     def save_settings(self) -> None:
         self.settings_repo.save(self.settings)
         self.camera_rig.set_sensitivity(self.settings.camera_sensitivity)
+        self.audio.set_volumes(
+            self.settings.master_volume,
+            self.settings.music_volume,
+            self.settings.sfx_volume,
+        )
 
     def toggle_fullscreen(self) -> None:
         self.settings.fullscreen = not self.settings.fullscreen
@@ -1154,7 +1585,7 @@ class QiqiTownApp(ShowBase):
             self.win.getScreenshot().write(
                 Filename.fromOsSpecific(str(build_dir() / "minigame_done.png"))
             )
-            self.end_minigame(success=True, game_id="day1_shapes")
+            self.end_minigame(success=True, game_id=self.minigame_ui._game_id)
             self.enter_interior("home")
             for _ in range(3):
                 self.taskMgr.step()
@@ -1271,9 +1702,12 @@ def configure_prc(args: Namespace) -> None:
     loadPrcFileData("", "framebuffer-multisample 1")
     loadPrcFileData("", "multisamples 4")
     loadPrcFileData("", "vsync 1")
-    loadPrcFileData("", "audio-library-name null")
+    if args.smoke_test:
+        loadPrcFileData("", "audio-library-name null")
+    else:
+        loadPrcFileData("", "audio-library-name p3openal_audio")
     loadPrcFileData("", "notify-level warning")
     loadPrcFileData("", "default-directnotify-level warning")
     if args.smoke_test:
         loadPrcFileData("", "window-type offscreen")
-        loadPrcFileData("", "win-size 1280 720")
+        loadPrcFileData("", "win-size 1600 900")

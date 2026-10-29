@@ -149,18 +149,22 @@ class MinigameUi:
     def _select_item(self, item_id: str) -> None:
         if self.game is None:
             return
+        self.app.audio.play_sfx("click")
         if self.game.select_item(item_id):
             self._update_buttons()
 
     def _choose_slot(self, slot_id: str) -> None:
         if self.game is None:
             return
+        self.app.audio.play_sfx("click")
         result = self.game.choose_slot(slot_id)
         if result == "correct":
+            self.app.audio.play_sfx("success", volume=0.55)
             self._update_buttons()
             if self.game.finished:
                 self._show_reward()
         elif result == "wrong":
+            self.app.audio.play_sfx("error", volume=0.6)
             self.status["text"] = "这里不是它的家，再试试。"
             self._update_buttons()
 

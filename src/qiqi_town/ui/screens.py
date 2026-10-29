@@ -126,12 +126,19 @@ class UiManager:
             frameSize=(-width / 2, width / 2, -height / 2, height / 2),
             pos=(pos[0], 0, pos[1]),
             relief=DGG.FLAT,
-            command=command,
+            command=self._wrap_command(command),
         )
         button.setTransparency(TransparencyAttrib.MAlpha)
         if not enabled:
             button["state"] = DGG.DISABLED
         return button
+
+    def _wrap_command(self, command: Callable[[], None]) -> Callable[[], None]:
+        def wrapped() -> None:
+            self.app.audio.play_sfx("click")
+            command()
+
+        return wrapped
 
     def _small_button(
         self,
@@ -371,7 +378,7 @@ class UiManager:
             frameSize=(-width / 2, width / 2, -height / 2, height / 2),
             pos=(pos[0], 0, pos[1]),
             relief=DGG.FLAT,
-            command=command,
+            command=self._wrap_command(command),
         )
         button.setTransparency(TransparencyAttrib.MAlpha)
         if not enabled:
@@ -598,7 +605,7 @@ class UiManager:
             frameSize=(-0.13, 0.13, -0.045, 0.045),
             pos=(1.13, 0, 0.89),
             relief=DGG.FLAT,
-            command=self.app.pause_game,
+            command=self._wrap_command(self.app.pause_game),
         )
         self.hud_menu_button.setTransparency(TransparencyAttrib.MAlpha)
 

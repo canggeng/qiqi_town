@@ -11,6 +11,7 @@ from panda3d.core import TextNode, TransparencyAttrib
 
 from qiqi_town.config import DAY_TITLES
 from qiqi_town.paths import data_dir
+from qiqi_town.systems.daily_content import slots_for_day
 
 STICKER_SLOTS = 20
 
@@ -71,8 +72,11 @@ class DiaryUi:
             frameSize=(-0.22, 0.22, -0.06, 0.06),
             pos=(1.02, 0, -0.81),
             relief=DGG.FLAT,
-            command=self.app.close_diary,
+            command=self._close,
         )
+
+    def _close(self) -> None:
+        self.app.close_diary()
 
     def _label(
         self,
@@ -131,10 +135,12 @@ class DiaryUi:
         else:
             quest_text = "今日主线：进行中"
         self.quest_text["text"] = quest_text
-        minigame_done = sum(1 for key, value in state.minigames.items() if value.completed)
-        self.game_text["text"] = f"小游戏：完成 {minigame_done} 项\n" + (
-            "形状小管家（已完成）" if any(key == "day1_shapes" and value.completed for key, value in state.minigames.items()) else "形状小管家（未完成）"
-        )
+        games = slots_for_day(day)
+        lines = ["今日小游戏："]
+        for slot in games:
+            done = state.minigames.get(slot.id)
+            lines.append(f"{slot.title}（{'已完成' if done and done.completed else '未完成'}）")
+        self.game_text["text"] = "\n".join(lines)
         friends = state.friendship
         self.friend_text["text"] = (
             "朋友们：\n"

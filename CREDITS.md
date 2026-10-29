@@ -19,7 +19,13 @@
 
 ## 音频
 
-尚未加入音频素材。计划使用 CC0 / 免版税音乐与音效，逐项记录来源、作者、许可证 URL。
+本项目没有使用第三方录音或音乐素材。所有轻音乐、环境音与音效由 `tools/generate_audio.py` 使用 Python 标准库合成，音频文件位于 `src/qiqi_town/assets/audio/`：
+
+- 音乐：`town_day.wav`、`interior.wav`、`dusk.wav`
+- 环境音：`ambience_town.wav`、`ambience_interior.wav`
+- 音效：点击、选择、保存、成功、翻页、开门、脚步、鸭子、秋千、灯笼、错误等
+
+这些音频为本项目原创，按 CC0 1.0 公共领域贡献方式随游戏分发；可自由用于本项目的修改与再分发。
 
 ## 代码
 

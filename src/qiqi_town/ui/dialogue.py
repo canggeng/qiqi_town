@@ -164,6 +164,7 @@ class DialogueUi:
     def _choose(self, index: int) -> None:
         if self.runner is None:
             return
+        self.app.audio.play_sfx("choose")
         still_running = self.runner.choose(index)
         if still_running:
             self._display_current()
@@ -173,6 +174,7 @@ class DialogueUi:
     def handle_click(self) -> None:
         if self.runner is None or self._choice_ready:
             return
+        self.app.audio.play_sfx("page")
         if self._shown_chars < len(self._full_text):
             self._shown_chars = float(len(self._full_text))
             self.body_text["text"] = self._full_text

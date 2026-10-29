@@ -1,0 +1,230 @@
+{
+  "ev_notice_1": {
+    "speaker": "淇淇",
+    "text": "广场的告示牌上贴着灯会的节目单：唱歌、做灯笼、山顶看灯。",
+    "choices": [
+      {"text": "仔细看看时间。", "next": "ev_notice_2a"},
+      {"text": "先记在心里，去玩吧。", "next": "ev_notice_2b"}
+    ]
+  },
+  "ev_notice_2a": {
+    "speaker": "淇淇",
+    "text": "原来第五天傍晚，大家会在山顶挂灯笼。我要早点去占个好位置。",
+    "effects": [
+      {"type": "set_flag", "key": "event_notice_seen", "value": true},
+      {"type": "add_journal", "id": "event_notice"}
+    ]
+  },
+  "ev_notice_2b": {
+    "speaker": "淇淇",
+    "text": "反正林老师会提醒我的。先去公园看看鸭子吧。",
+    "effects": [
+      {"type": "set_flag", "key": "event_notice_seen", "value": true}
+    ]
+  },
+  "ev_fountain_1": {
+    "speaker": "淇淇",
+    "text": "喷泉边有一枚亮闪闪的硬币。要不要许个愿？",
+    "choices": [
+      {
+        "text": "把硬币投进水里，许个愿。",
+        "next": "ev_fountain_2a",
+        "effects": [{"type": "add_journal", "id": "event_fountain"}]
+      },
+      {
+        "text": "把硬币留给妈妈。",
+        "next": "ev_fountain_2b"
+      }
+    ]
+  },
+  "ev_fountain_2a": {
+    "speaker": "淇淇",
+    "text": "希望小镇上的每个人，都能在灯会那天笑得很开心。",
+    "effects": [{"type": "set_flag", "key": "event_fountain_seen", "value": true}]
+  },
+  "ev_fountain_2b": {
+    "speaker": "淇淇",
+    "text": "妈妈一定会说：小财迷。然后把硬币放进围裙口袋。",
+    "effects": [{"type": "set_flag", "key": "event_fountain_seen", "value": true}]
+  },
+  "ev_cat_1": {
+    "speaker": "团子",
+    "text": "团子蜷在猫窝里，尾巴一甩一甩，眯着眼睛看淇淇。",
+    "choices": [
+      {
+        "text": "轻轻摸一摸它的头。",
+        "next": "ev_cat_2a",
+        "effects": [{"type": "add_friendship", "npc": "gu", "amount": 1}]
+      },
+      {"text": "不打扰它睡觉。", "next": "ev_cat_2b"}
+    ]
+  },
+  "ev_cat_2a": {
+    "speaker": "团子",
+    "text": "团子发出很轻的呼噜声，把头往淇淇手心里蹭了蹭。",
+    "effects": [
+      {"type": "set_flag", "key": "event_cat_seen", "value": true},
+      {"type": "give_sticker", "id": "sticker_cat"}
+    ]
+  },
+  "ev_cat_2b": {
+    "speaker": "淇淇",
+    "text": "团子翻了个身，继续做它的图书馆梦。",
+    "effects": [{"type": "set_flag", "key": "event_cat_seen", "value": true}]
+  },
+  "ev_books_1": {
+    "speaker": "顾爷爷",
+    "text": "哎呀，刚才那阵风把书吹倒了。淇淇，能帮爷爷扶一下吗？",
+    "choices": [
+      {"text": "我来帮您。", "next": "ev_books_2a"},
+      {"text": "我先去追跑掉的团子。", "next": "ev_books_2b"}
+    ]
+  },
+  "ev_books_2a": {
+    "speaker": "顾爷爷",
+    "text": "谢谢你。每本书都有自己的位置，就像每个人都有自己的家。",
+    "effects": [
+      {"type": "set_flag", "key": "event_books_seen", "value": true},
+      {"type": "add_friendship", "npc": "gu", "amount": 1}
+    ]
+  },
+  "ev_books_2b": {
+    "speaker": "顾爷爷",
+    "text": "去吧，团子跑不远的。书爷爷自己来。",
+    "effects": [{"type": "set_flag", "key": "event_books_seen", "value": true}]
+  },
+  "ev_ducks_1": {
+    "speaker": "淇淇",
+    "text": "鸭子一家排着队要过小路，扁扁走在最前面，后面的小鸭子有点跟不上。",
+    "choices": [
+      {"text": "站在原地等它们过去。", "next": "ev_ducks_2a"},
+      {"text": "从旁边绕过去。", "next": "ev_ducks_2b"}
+    ]
+  },
+  "ev_ducks_2a": {
+    "speaker": "淇淇",
+    "text": "最后一只小鸭子摇摇摆摆地跟上了。鸭妈妈回头叫了一声，像在说谢谢。",
+    "effects": [
+      {"type": "set_flag", "key": "event_ducks_seen", "value": true},
+      {"type": "add_friendship", "npc": "su", "amount": 1}
+    ]
+  },
+  "ev_ducks_2b": {
+    "speaker": "淇淇",
+    "text": "淇淇绕到花圃边，鸭子们还是顺利地过了路。",
+    "effects": [{"type": "set_flag", "key": "event_ducks_seen", "value": true}]
+  },
+  "ev_scarf_1": {
+    "speaker": "淇淇",
+    "text": "长椅上落着一条蓝色围巾，边角绣着一朵小花。",
+    "choices": [
+      {"text": "交给苏阿姨。", "next": "ev_scarf_2a"},
+      {"text": "先放在长椅上，等失主回来。", "next": "ev_scarf_2b"}
+    ]
+  },
+  "ev_scarf_2a": {
+    "speaker": "苏阿姨",
+    "text": "这是陈阿姨的围巾。她找了一上午啦，我替她谢谢你。",
+    "effects": [
+      {"type": "set_flag", "key": "event_scarf_seen", "value": true},
+      {"type": "add_friendship", "npc": "su", "amount": 1}
+    ]
+  },
+  "ev_scarf_2b": {
+    "speaker": "淇淇",
+    "text": "淇淇把围巾叠好放在长椅正中，还在旁边压了一颗小石子。",
+    "effects": [{"type": "set_flag", "key": "event_scarf_seen", "value": true}]
+  },
+  "ev_balloon_1": {
+    "speaker": "陈阿姨",
+    "text": "糟糕，一只气球挂到树上了。淇淇，你能帮阿姨看看吗？",
+    "choices": [
+      {"text": "我踮脚够够看。", "next": "ev_balloon_2a"},
+      {"text": "我去叫小满来帮忙。", "next": "ev_balloon_2b"}
+    ]
+  },
+  "ev_balloon_2a": {
+    "speaker": "淇淇",
+    "text": "淇淇踮起脚，气球晃了晃，终于飘了下来。陈阿姨把最好看的那只送给了她。",
+    "effects": [
+      {"type": "set_flag", "key": "event_balloon_seen", "value": true},
+      {"type": "give_sticker", "id": "sticker_balloon"},
+      {"type": "add_friendship", "npc": "chen", "amount": 1}
+    ]
+  },
+  "ev_balloon_2b": {
+    "speaker": "淇淇",
+    "text": "小满跑得飞快，三两下就够到了气球。陈阿姨笑着给她俩一人一颗糖。",
+    "effects": [
+      {"type": "set_flag", "key": "event_balloon_seen", "value": true},
+      {"type": "give_sticker", "id": "sticker_balloon"},
+      {"type": "add_friendship", "npc": "xiaoman", "amount": 1}
+    ]
+  },
+  "ev_sandcastle_1": {
+    "speaker": "淇淇",
+    "text": "沙坑里有一座小小的城堡，城墙歪歪的，塔尖上插着一片树叶旗。",
+    "effects": [
+      {"type": "set_flag", "key": "event_sandcastle_seen", "value": true},
+      {"type": "add_journal", "id": "event_sandcastle"}
+    ]
+  },
+  "ev_art_1": {
+    "speaker": "林老师",
+    "text": "淇淇，来给灯会画一张画吧。你想用什么颜色？",
+    "choices": [
+      {"text": "红色，像我的气球。", "next": "ev_art_2a"},
+      {"text": "黄色，像灯笼。", "next": "ev_art_2b"},
+      {"text": "蓝色，像晚上的天空。", "next": "ev_art_2c"}
+    ]
+  },
+  "ev_art_2a": {
+    "speaker": "林老师",
+    "text": "红色真热闹。老师把它贴在教室门口。",
+    "effects": [{"type": "set_flag", "key": "event_art_seen", "value": true}]
+  },
+  "ev_art_2b": {
+    "speaker": "林老师",
+    "text": "黄色亮亮的，像一盏小灯。老师把它贴在教室门口。",
+    "effects": [{"type": "set_flag", "key": "event_art_seen", "value": true}]
+  },
+  "ev_art_2c": {
+    "speaker": "林老师",
+    "text": "蓝色很安静。老师把它贴在教室门口。",
+    "effects": [{"type": "set_flag", "key": "event_art_seen", "value": true}]
+  },
+  "ev_mitten_1": {
+    "speaker": "淇淇",
+    "text": "储物格下有一只落单的小手套，上面绣着一只小兔子。",
+    "effects": [
+      {"type": "set_flag", "key": "event_mitten_seen", "value": true},
+      {"type": "add_journal", "id": "event_mitten"}
+    ]
+  },
+  "ev_squirrel_1": {
+    "speaker": "淇淇",
+    "text": "山道边的松鼠抱着一颗野果，耳朵一抖一抖地看着她。",
+    "choices": [
+      {"text": "把口袋里的果子分它一颗。", "next": "ev_squirrel_2a"},
+      {"text": "安静地看着它。", "next": "ev_squirrel_2b"}
+    ]
+  },
+  "ev_squirrel_2a": {
+    "speaker": "淇淇",
+    "text": "松鼠飞快地抱起果子，跑到树根边埋了起来，又回头看了淇淇一眼。",
+    "effects": [{"type": "set_flag", "key": "event_squirrel_seen", "value": true}]
+  },
+  "ev_squirrel_2b": {
+    "speaker": "淇淇",
+    "text": "松鼠啃完果子，甩了甩大尾巴，钻进树丛不见了。",
+    "effects": [{"type": "set_flag", "key": "event_squirrel_seen", "value": true}]
+  },
+  "ev_lantern_1": {
+    "speaker": "淇淇",
+    "text": "山顶的灯笼在风里轻轻转。淇淇把红气球系在栏杆上，又点亮了一盏小灯。",
+    "effects": [
+      {"type": "set_flag", "key": "event_lantern_seen", "value": true},
+      {"type": "add_journal", "id": "event_lantern"}
+    ]
+  }
+}

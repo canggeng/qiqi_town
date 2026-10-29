@@ -196,7 +196,7 @@ class SaveRepository:
         return SaveMeta(
             slot=slot,
             is_auto=is_auto,
-            saved_at=datetime.now().astimezone().isoformat(timespec="seconds"),
+            saved_at=datetime.now().astimezone().isoformat(timespec="microseconds"),
             playtime_seconds=state.playtime_seconds,
             day=state.day,
             time_minutes=state.time_minutes,

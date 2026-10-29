@@ -18,6 +18,9 @@
 - `msyh.ttc` 加载后没有字形，改用 `simhei.ttf` 正常。
 - 发布字体已解决：从 PyPI 数据包 `pylopdf-fonts-zh-cn` 取得 **NotoSansSC-Regular.otf**（OFL 1.1），
   放入 `src/qiqi_town/assets/fonts/`，游戏优先加载随包字体，缺失时才回退系统字体。
+- 音频：Panda3D 的 `p3openal_audio` 在 Windows 上可加载 22050 Hz/单声道 WAV；
+  原创音乐/环境音/音效由 `tools/generate_audio.py` 生成，打包时随 `assets/audio` 一起收集。
+- 字体与音频资源使 onedir 包增大约 30MB；冒烟测试使用 `audio-library-name null`，正常运行才启用 OpenAL。
 - CJK 换行：Panda3D 的 `wordwrap` 对中文不可靠，采用按字符宽度估算 + 手动 `\n` 的 `wrap_cjk`。
 - `--smoke-test`：offscreen 下截图成功，生成 `build/title.png`、`build/smoke.png`、
   `build/dialogue.png`、`build/save.png`、`build/settings.png`、`build/diary.png` 等。
