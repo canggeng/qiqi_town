@@ -6,5 +6,5 @@ if not exist "QiqiTown.exe" (
     pause
     exit /b 1
 )
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '%~dp0QiqiTown.exe' -ErrorAction SilentlyContinue"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -LiteralPath (Get-Location).Path -Recurse -File -ErrorAction SilentlyContinue | Unblock-File -ErrorAction SilentlyContinue"
 start "" "%~dp0QiqiTown.exe"

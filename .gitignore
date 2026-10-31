@@ -17,6 +17,10 @@ dist/
 pytest-cache-files-*/
 docs/reference/*.jpg
 docs/reference/*.jpeg
+.acl-recovery/
+.acl-recovery-*/
+.archify/
+specs/001-qiqi-town/qiqi-town-architecture.*.json
 
 # local app-data fallback from development runs
 QiqiTown/

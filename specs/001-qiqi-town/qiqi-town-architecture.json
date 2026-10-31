@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "淇淇的小镇 · 运行时架构",
+    "locale": "zh-CN",
+    "output": "specs/001-qiqi-town/qiqi-town-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:canggeng/qiqi_town.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "47a211d84af6598718a31f022a1e2fb4561f9cb5"
+    }
+  },
+  "components": [
+    {
+      "id": "player",
+      "type": "external",
+      "label": "玩家",
+      "sublabel": "鼠标点击 · F11 · 菜单",
+      "icon": "person",
+      "pos": [30, 250],
+      "size": [150, 72],
+      "sources": [
+        { "path": "src/qiqi_town/app.py", "line": 671, "end_line": 700, "label": "输入绑定" },
+        { "path": "src/qiqi_town/entities/player.py", "line": 13, "end_line": 20, "label": "玩家控制器" }
+      ]
+    },
+    {
+      "id": "app",
+      "type": "backend",
+      "label": "QiqiTownApp",
+      "sublabel": "场景 / 模式 / 主循环编排",
+      "icon": "backend",
+      "pos": [260, 240],
+      "size": [190, 86],
+      "sources": [
+        { "path": "src/qiqi_town/app.py", "line": 65, "end_line": 120, "label": "应用初始化" },
+        { "path": "src/qiqi_town/app.py", "line": 784, "end_line": 830, "label": "主循环" },
+        { "path": "src/qiqi_town/app.py", "line": 1367, "end_line": 1395, "label": "场景切换" }
+      ]
+    },
+    {
+      "id": "ui",
+      "type": "frontend",
+      "label": "DirectGUI 界面",
+      "sublabel": "标题 · HUD · 对话 · 小游戏",
+      "icon": "frontend",
+      "pos": [260, 60],
+      "size": [190, 78],
+      "sources": [
+        { "path": "src/qiqi_town/ui/screens.py", "line": 15, "end_line": 30, "label": "界面管理" },
+        { "path": "src/qiqi_town/ui/screens.py", "line": 568, "end_line": 600, "label": "HUD" },
+        { "path": "src/qiqi_town/ui/dialogue.py", "line": 32, "end_line": 45, "label": "对话界面" }
+      ]
+    },
+    {
+      "id": "world",
+      "type": "frontend",
+      "label": "3D 场景与导航",
+      "sublabel": "青禾镇 · 室内 · 山道",
+      "icon": "frontend",
+      "pos": [260, 430],
+      "size": [190, 78],
+      "sources": [
+        { "path": "src/qiqi_town/world/town.py", "line": 43, "end_line": 60, "label": "小镇构建" },
+        { "path": "src/qiqi_town/world/interiors.py", "line": 29, "end_line": 53, "label": "室内场景" },
+        { "path": "src/qiqi_town/world/nav.py", "line": 27, "end_line": 40, "label": "导航网格" }
+      ]
+    },
+    {
+      "id": "interaction",
+      "type": "backend",
+      "label": "点击与交互",
+      "sublabel": "悬停 · 寻路 · 交互点",
+      "icon": "active",
+      "pos": [540, 240],
+      "size": [170, 74],
+      "sources": [
+        { "path": "src/qiqi_town/app.py", "line": 689, "end_line": 730, "label": "点击处理" },
+        { "path": "src/qiqi_town/app.py", "line": 875, "end_line": 940, "label": "悬停与交互" }
+      ]
+    },
+    {
+      "id": "dialogue",
+      "type": "backend",
+      "label": "对话与任务",
+      "sublabel": "条件 · 效果 · 五天主线",
+      "icon": "person",
+      "pos": [820, 130],
+      "size": [190, 82],
+      "sources": [
+        { "path": "src/qiqi_town/systems/dialogue.py", "line": 32, "end_line": 50, "label": "对话运行器" },
+        { "path": "src/qiqi_town/systems/dialogue_data.py", "line": 11, "end_line": 23, "label": "对话加载" },
+        { "path": "src/qiqi_town/data/dialogue/day1.json", "line": 1, "end_line": 3, "label": "剧情数据" }
+      ]
+    },
+    {
+      "id": "minigames",
+      "type": "backend",
+      "label": "小游戏与每日排期",
+      "sublabel": "6 套玩法 · 每天 3 个",
+      "icon": "flag",
+      "pos": [820, 350],
+      "size": [190, 82],
+      "sources": [
+        { "path": "src/qiqi_town/systems/daily_content.py", "line": 20, "end_line": 55, "label": "每日排期" },
+        { "path": "src/qiqi_town/systems/minigames/find_game.py", "line": 41, "end_line": 55, "label": "3D 找一找" },
+        { "path": "src/qiqi_town/systems/minigames/story_order.py", "line": 9, "end_line": 47, "label": "故事排序" }
+      ]
+    },
+    {
+      "id": "state",
+      "type": "backend",
+      "label": "GameState",
+      "sublabel": "旗标 · 友谊 · 贴纸 · 进度",
+      "icon": "database",
+      "pos": [1110, 240],
+      "size": [170, 86],
+      "sources": [
+        { "path": "src/qiqi_town/core/state.py", "line": 91, "end_line": 120, "label": "状态模型" }
+      ]
+    },
+    {
+      "id": "clock",
+      "type": "backend",
+      "label": "GameClock",
+      "sublabel": "08:00–20:00 · 五日推进",
+      "icon": "clock",
+      "pos": [540, 430],
+      "size": [170, 72],
+      "sources": [
+        { "path": "src/qiqi_town/core/clock.py", "line": 8, "end_line": 30, "label": "游戏时钟" }
+      ]
+    },
+    {
+      "id": "audio",
+      "type": "backend",
+      "label": "AudioSystem",
+      "sublabel": "音乐 · 环境音 · 音效",
+      "icon": "messagebus",
+      "pos": [30, 430],
+      "size": [160, 72],
+      "sources": [
+        { "path": "src/qiqi_town/systems/audio.py", "line": 16, "end_line": 40, "label": "音频系统" }
+      ]
+    },
+    {
+      "id": "save",
+      "type": "database",
+      "label": "SaveRepository",
+      "sublabel": "20+1 存档 · JSON · 迁移",
+      "icon": "database",
+      "pos": [1400, 240],
+      "size": [180, 86],
+      "sources": [
+        { "path": "src/qiqi_town/core/save_repository.py", "line": 102, "end_line": 120, "label": "存档仓库" },
+        { "path": "src/qiqi_town/core/save_repository.py", "line": 211, "end_line": 245, "label": "写入协议" },
+        { "path": "src/qiqi_town/paths.py", "line": 30, "end_line": 80, "label": "稳定目录" }
+      ]
+    },
+    {
+      "id": "content",
+      "type": "database",
+      "label": "内容与资源",
+      "sublabel": "对话 JSON · 贴纸 · 字体 · WAV",
+      "icon": "database",
+      "pos": [30, 60],
+      "size": [160, 78],
+      "sources": [
+        { "path": "src/qiqi_town/data/dialogue/day1.json", "line": 1, "end_line": 3, "label": "对话数据" },
+        { "path": "src/qiqi_town/data/stickers.json", "line": 1, "label": "贴纸目录" },
+        { "path": "src/qiqi_town/assets/fonts/NotoSansSC-Regular.otf", "label": "随包字体" }
+      ]
+    },
+    {
+      "id": "panda",
+      "type": "external",
+      "label": "Panda3D / OpenAL",
+      "sublabel": "渲染 · 输入 · 音频后端",
+      "icon": "cloud",
+      "pos": [260, 590],
+      "size": [190, 70],
+      "sources": [
+        { "path": "pyproject.toml", "line": 1, "end_line": 9, "label": "运行时依赖" },
+        { "path": "src/qiqi_town/app.py", "line": 65, "end_line": 76, "label": "ShowBase 入口" }
+      ]
+    }
+  ],
+  "connections": [
+    { "id": "player-app", "from": "player", "to": "app", "label": "鼠标 / F11", "variant": "emphasis" },
+    { "id": "app-ui", "from": "app", "to": "ui", "label": "显示 / 隐藏界面", "fromSide": "top", "toSide": "bottom" },
+    { "id": "app-world", "from": "app", "to": "world", "label": "构建 / 激活场景", "fromSide": "bottom", "toSide": "top" },
+    { "id": "app-interaction", "from": "app", "to": "interaction", "label": "点击 / 悬停" },
+    { "id": "interaction-dialogue", "from": "interaction", "to": "dialogue", "label": "开始对话", "fromSide": "right", "toSide": "left" },
+    { "id": "interaction-minigames", "from": "interaction", "to": "minigames", "label": "启动小游戏", "fromSide": "right", "toSide": "left" },
+    { "id": "dialogue-state", "from": "dialogue", "to": "state", "label": "旗标 / 友谊", "fromSide": "right", "toSide": "left" },
+    { "id": "minigames-state", "from": "minigames", "to": "state", "label": "奖励 / 完成", "fromSide": "right", "toSide": "left" },
+    { "id": "state-save", "from": "state", "to": "save", "label": "序列化 GameState" },
+    { "id": "app-clock", "from": "app", "to": "clock", "label": "tick / 下一天", "fromSide": "bottom", "toSide": "top" },
+    { "id": "app-audio", "from": "app", "to": "audio", "label": "音乐 / 音效", "fromSide": "bottom", "toSide": "top" },
+    { "id": "content-app", "from": "content", "to": "app", "label": "加载 JSON / 资源", "fromSide": "right", "toSide": "top" },
+    { "id": "world-panda", "from": "world", "to": "panda", "label": "运行于", "variant": "dashed", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "主路径",
+      "items": [
+        "鼠标点击进入 app，选择地面或交互点",
+        "交互点分出对话与每日小游戏两条路径",
+        "结果写回 GameState，再进入存档仓库"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "内容与规则",
+      "items": [
+        "对话和事件由 JSON 驱动，避免把剧情写死在 UI",
+        "6 套小游戏按 daily_content 编排，每天 3 个",
+        "20 张贴纸、日记、友谊和主线旗标统一进 GameState"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "持久化",
+      "items": [
+        "20 个手动槽位 + autosave.json",
+        "原子写入、.bak、损坏保护",
+        "固定 %APPDATA%\\QiqiTown\\saves，支持旧目录迁移和退出自动保存"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "运行与交付",
+      "items": [
+        "Panda3D + DirectGUI + OpenAL 单进程运行",
+        "62 个 pytest、ruff 和 smoke 作为质量门禁",
+        "PyInstaller onedir + START_GAME.bat 便携交付"
+      ]
+    }
+  ]
+}

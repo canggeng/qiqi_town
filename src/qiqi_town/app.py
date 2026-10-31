@@ -19,6 +19,7 @@ from panda3d.core import (
     MouseButton,
     Point2,
     Point3,
+    TextNode,
     Vec4,
     WindowProperties,
     loadPrcFileData,
@@ -121,6 +122,7 @@ class QiqiTownApp(ShowBase):
         self._setup_npcs()
         self._setup_find_game()
         self._setup_events()
+        self._setup_game_markers()
         self.dialogue_ui = DialogueUi(self)
         self.minigame_ui = MinigameUi(self)
         self.story_order_ui = StoryOrderUi(self)
@@ -658,6 +660,111 @@ class QiqiTownApp(ShowBase):
                 )
             )
 
+    def _setup_game_markers(self) -> None:
+        self.game_marker_nodes: dict[str, object] = {}
+        self.game_marker_ids: set[str] = set()
+        self._refresh_game_markers()
+
+    def _game_marker_configs(
+        self,
+    ) -> dict[str, tuple[str, tuple[float, float, float], tuple[float, float]]]:
+        return {
+            "shape": ("kindergarten", (3.2, 1.4, 0.75), (3.2, 0.2)),
+            "catch": ("town", (13.0, -12.0, 0.95), (13.0, -13.1)),
+            "rhythm": ("town", (-17.2, -14.8, 1.25), (-17.2, -16.2)),
+            "story": ("library", (0.0, 0.8, 0.95), (0.0, -0.4)),
+            "find": ("town", (4.0, -3.0, 1.35), (4.0, -4.4)),
+            "memory": ("town", (2.8, 14.8, 1.70), (2.8, 13.4)),
+        }
+
+    def _refresh_game_markers(self) -> None:
+        """只显示今天的每日小游戏；完成后显示 √，换天时重建。"""
+        if not hasattr(self, "scene_interactables"):
+            return
+        for node in self.game_marker_nodes.values():
+            node.removeNode()
+        self.game_marker_nodes = {}
+        for items in self.scene_interactables.values():
+            items[:] = [item for item in items if item.id not in self.game_marker_ids]
+        self.game_marker_ids.clear()
+
+        for kind, (scene_id, pos, approach) in self._game_marker_configs().items():
+            slot = slot_for(self.clock.day, kind)
+            if slot is None:
+                continue
+            previous = self.state.minigames.get(slot.id)
+            completed = bool(previous and previous.completed)
+            symbol = "√" if completed else "?"
+            color = (
+                Vec4(0.28, 0.78, 0.44, 1.0)
+                if completed
+                else Vec4(1.0, 0.72, 0.16, 1.0)
+            )
+            text = TextNode(f"game_marker_{slot.id}")
+            text.setText(symbol)
+            if self.font is not None:
+                text.setFont(self.font)
+            text.setTextColor(color)
+            text.setAlign(TextNode.ACenter)
+            text.setShadow(0.035, 0.035)
+            parent = (
+                self.town_scene.root
+                if scene_id == "town"
+                else self.interiors[scene_id].root
+            )
+            node = parent.attachNewNode(text)
+            node.setPos(*pos)
+            node.setScale(0.55)
+            node.setBillboardPointEye()
+            node.setDepthTest(False)
+            node.setDepthWrite(False)
+            node.setLightOff()
+            node.setBin("fixed", 60)
+            halo = meshkit.add_disc(
+                node,
+                f"game_marker_halo_{slot.id}",
+                (0, 0, -0.12),
+                0.34,
+                (1.0, 0.82, 0.30, 1.0),
+                segments=24,
+                alpha=0.42 if not completed else 0.30,
+            )
+            halo.setDepthTest(False)
+            halo.setDepthWrite(False)
+            halo.setLightOff()
+            halo.setBin("fixed", 59)
+            self.game_marker_nodes[slot.id] = node
+
+            interaction_id = f"game_marker_{slot.id}"
+            self.game_marker_ids.add(interaction_id)
+            label = f"{'再玩' if completed else '开始'}：{slot.title}"
+            self.scene_interactables[scene_id].append(
+                Interactable(
+                    interaction_id,
+                    label,
+                    pos,
+                    approach,
+                    lambda k=kind: self._start_today_game(k),
+                    radius=2.7,
+                    kind="game",
+                )
+            )
+
+    def _start_today_game(self, kind: str) -> None:
+        if self.mode != "playing":
+            return
+        starters = {
+            "shape": self.start_shape_game,
+            "catch": self.start_catch_game,
+            "rhythm": self.start_rhythm_game,
+            "story": self.start_story_game,
+            "find": self.start_find_game,
+            "memory": self.start_memory_game,
+        }
+        starter = starters.get(kind)
+        if starter is not None:
+            starter()
+
     def trigger_event(self, event_id: str) -> None:
         flag = f"event_{event_id}_seen"
         if self.state.flags.get(flag):
@@ -1149,6 +1256,7 @@ class QiqiTownApp(ShowBase):
                 self.state.add_friendship(slot.friend, 1)
             self.ui.toast("找到了全部闪光！获得回忆贴纸：小镇侦探。", 3.2)
             self._sync_state_from_world()
+            self._refresh_game_markers()
             self._auto_save()
         else:
             self.ui.toast(f"找到一个闪光（{len(self.find_game.found)}/{self.find_game.total}）。", 2.0)
@@ -1225,6 +1333,7 @@ class QiqiTownApp(ShowBase):
             self.ui.toast(f"又完成了一次{name}。", 2.0)
         self._sync_state_from_world()
         self._check_sticker_milestones()
+        self._refresh_game_markers()
         self._auto_save()
 
     # ---------------------------------------------------------------- quests/day
@@ -1313,6 +1422,7 @@ class QiqiTownApp(ShowBase):
             from qiqi_town.core.state import QuestState
 
             self.state.quests[quest_id] = QuestState(step=0, status="active")
+        self._refresh_game_markers()
         self._activate_scene("home", self.interiors["home"].spawn, 0.0)
         self.state.location = "home"
         self._sync_state_from_world()
@@ -1546,6 +1656,7 @@ class QiqiTownApp(ShowBase):
         self.state.player.facing = math.pi
         self.clock = GameClock(day=self.state.day, minutes=self.state.time_minutes)
         self.clock.paused = False
+        self._refresh_game_markers()
         self._activate_scene("town", self.town_scene.player_start, math.pi)
         self.mode = "playing"
         self.ui.hide_confirm()
@@ -1633,6 +1744,7 @@ class QiqiTownApp(ShowBase):
         self.clock.paused = False
         scene_id = state.location if state.location in self.scene_roots else "town"
         self.state.location = scene_id
+        self._refresh_game_markers()
         self._activate_scene(scene_id, (state.player.x, state.player.y), state.player.facing)
         self.mode = "playing"
         self.ui.hide_confirm()

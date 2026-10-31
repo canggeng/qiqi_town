@@ -11,6 +11,7 @@
 - 对话系统：逐字显示、选项、条件/效果、旗标/友谊/贴纸。
 - 五天主线：通过和各地点居民对话与选择，完成每天的主线；回家睡觉推进天数；第五天登顶看灯会结局，之后进入自由模式。
 - 每天 3 个小游戏，共 6 套玩法：形状配对、故事排序、秋千节奏、接花瓣、山路记忆、小镇 3D 找一找；按天排期并显示在日记里。
+- 每日小游戏站点有 3D `?` 标记：当天完成后变 `√`，次日自动清除，点击标记即可开始或重玩。
 - 幼儿园新增安思宜、邵文星两位小朋友；公园的鸭子一家也可以对话。
 - 家里有妈妈：每天早晨自动问好，黄昏和睡前说晚安，其他时间会抱抱、亲亲，也可以主动找她说话。
 - 睡觉时会播放“晚安 → 第二天清晨”的夜间过渡画面。
@@ -48,7 +49,7 @@ powershell -ExecutionPolicy Bypass -File tools/build.ps1
 
 输出：`dist/QiqiTown/QiqiTown.exe`（onedir、无控制台）。
 
-打包包里附带 **START_GAME.bat** 和 **README-PORTABLE.txt**。如果从浏览器下载后被 SmartScreen 拦截，先解压，再双击 `START_GAME.bat`：它会移除 exe 的“来自 Internet”标记后启动。更彻底的方式是右键 zip → 属性 → 勾选“解除锁定” → 再解压。未做代码签名的 PyInstaller 程序无法从工程侧完全消除 SmartScreen 的未知发布者提示。
+打包包里附带 **START_GAME.bat** 和 **README-PORTABLE.txt**。如果从浏览器下载后被 SmartScreen 拦截，先解压，再双击 `START_GAME.bat`：它会递归移除整个游戏目录的“来自 Internet”标记后启动。更彻底的方式是右键 zip → 属性 → 勾选“解除锁定” → 再解压。未做代码签名的 PyInstaller 程序无法从工程侧完全消除 SmartScreen 的未知发布者提示；签名步骤见 [docs/CODE_SIGNING.md](docs/CODE_SIGNING.md)。
 
 ## 存档
 

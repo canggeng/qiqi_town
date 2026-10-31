@@ -19,6 +19,22 @@ if ($LASTEXITCODE -ne 0) { throw "pyinstaller failed" }
 $Exe = Join-Path $Root "dist\QiqiTown\QiqiTown.exe"
 if (-not (Test-Path $Exe)) { throw "missing $Exe" }
 
+$SignCert = $env:QIQI_SIGN_CERT
+if ($SignCert) {
+    Write-Host "== sign exe =="
+    if (-not (Test-Path $SignCert)) { throw "signing certificate not found: $SignCert" }
+    $SignTool = (Get-Command signtool.exe -ErrorAction SilentlyContinue).Source
+    if (-not $SignTool) { throw "signtool.exe not found; install Windows SDK or add it to PATH" }
+    $SignPassword = $env:QIQI_SIGN_PASSWORD
+    if (-not $SignPassword) { throw "QIQI_SIGN_PASSWORD is required when QIQI_SIGN_CERT is set" }
+    & $SignTool sign /fd SHA256 /f $SignCert /p $SignPassword /tr http://timestamp.digicert.com /td SHA256 $Exe
+    if ($LASTEXITCODE -ne 0) { throw "code signing failed" }
+    & $SignTool verify /pa $Exe
+    if ($LASTEXITCODE -ne 0) { throw "signature verification failed" }
+} else {
+    Write-Host "== unsigned build (set QIQI_SIGN_CERT to sign) =="
+}
+
 Write-Host "== smoke exe =="
 $DataDir = Join-Path $Root ".smoke-data-exe-build"
 $env:QIQI_TOWN_DATA_DIR = $DataDir
@@ -41,6 +57,7 @@ Copy-Item (Join-Path $Root "CREDITS.md") (Join-Path $DistDir "CREDITS.md") -Forc
 Copy-Item (Join-Path $Root "src\qiqi_town\assets\fonts\OFL-NotoSansSC.txt") (Join-Path $DistDir "FONT-LICENSE-NotoSansSC.txt") -Force
 Copy-Item (Join-Path $Root "tools\start_game.bat") (Join-Path $DistDir "START_GAME.bat") -Force
 Copy-Item (Join-Path $Root "tools\PORTABLE_README.txt") (Join-Path $DistDir "README-PORTABLE.txt") -Force
+Copy-Item (Join-Path $Root "docs\CODE_SIGNING.md") (Join-Path $DistDir "CODE_SIGNING.md") -Force
 Unblock-File -LiteralPath $Exe -ErrorAction SilentlyContinue
 $Zip = Join-Path $Root "dist\QiqiTown_v${Version}_windows_x64.zip"
 if (Test-Path $Zip) { Remove-Item $Zip -Force }

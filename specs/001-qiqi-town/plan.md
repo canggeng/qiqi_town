@@ -103,6 +103,12 @@ Panda3D ShowBase
 ### `systems/minigames/`
 6 套小游戏，共用 `MinigameSession` 接口；奖励与日记接入。
 
+### `app.py` · 每日小游戏标记
+`_setup_game_markers()` / `_refresh_game_markers()` 按 `daily_content.slot_for(day, kind)`
+为当天 3 个站点创建 3D `TextNode` 公告牌：未完成 `?`（金色），完成 `√`（绿色）。
+标记节点挂在对应场景根节点下，并注册同名 `Interactable`；`_start_today_game(kind)`
+直接启动对应小游戏。状态变化、读档、换天时重建，旧标记节点与交互项同时移除。
+
 ### `ui/`
 主题、通用控件、路由、标题/HUD/暂停/存档/日记/设置/结局。
 
@@ -126,6 +132,8 @@ Panda3D ShowBase
   - 输出 `dist/QiqiTown/QiqiTown.exe`。
 - `paths.py` 在 frozen 时使用 `sys._MEIPASS`。
 - 验收：清空 `PYTHONHOME`/`PYTHONPATH`，仅保留系统 PATH，从 `dist` 启动 `--smoke-test`。
+- 可选代码签名：设置 `QIQI_SIGN_CERT` / `QIQI_SIGN_PASSWORD` 时，构建脚本在冒烟与打包前
+  调用 `signtool` 签名并校验；未设置则输出 unsigned build 警告。
 
 ## 8. 里程碑
 

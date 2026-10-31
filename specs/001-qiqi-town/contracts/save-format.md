@@ -13,7 +13,9 @@
 └─ logs\
 ```
 
-不可写时回退到 `%LOCALAPPDATA%\QiqiTown\`。设置页显示实际路径。
+不可写时依次回退到 `%LOCALAPPDATA%\QiqiTown\`、用户目录、exe 目录；不得回退到当前工作目录。
+首次启动会把旧版写在 cwd/exe 旁的 `QiqiTown\saves` 迁移到稳定目录。
+设置页显示实际路径。
 
 ## 手动档规则
 

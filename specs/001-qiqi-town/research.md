@@ -33,6 +33,27 @@
 - 测试注意：Windows 沙箱下 pytest `tmp_path`/`tempfile.mkdtemp` 可能创建受限 ACL 目录；
   项目使用 `.test-tmp` + `Path.mkdir` 的 `work_dir` fixture，并在 pytest 配置中禁用 tmpdir 插件。
 
+## 2026-10-30/31 · 交互与 UI 收尾
+
+- **角色朝向**：Panda3D 中 `H=90` 会把模型 +Y 朝向转到 -X，因此行走朝向使用
+  `atan2(-dx, dy)`；`heading_probe.py` 验证东/北/西/南分别为约 -90°/0°/90°/180°。
+- **鼠标射线**：`Lens.extrude` 返回相机空间坐标，转到世界必须使用
+  `render.getRelativePoint(cam, point)`；方向写反会导致所有地面点击失败。
+- **无边框全屏**：`setFullscreen(True)` 在 2520×1680 测试环境触发
+  `ChangeDisplaySettings failed`；改为 `Fullscreen(False)+Undecorated(True)+display size`，
+  不切换分辨率，`fullscreen_probe.py` 可正常截图。
+- **圆角 UI**：用 `PNMImage` 按控件长宽比生成白色圆角 alpha 贴图，
+  `DirectFrame["frameTexture"]` + `frameColor` 着色；`ui/roundrect.py` 缓存复用。
+- **存档目录**：旧逻辑写入失败会回退 cwd，换启动目录后看起来“存档为空”；
+  现在固定 `%APPDATA%\QiqiTown`，回退 LOCALAPPDATA/用户目录/exe 目录，不回到 cwd；
+  首次启动从 cwd/exe 旁迁移旧档，退出和关窗自动保存。
+- **每日小游戏标记**：`TextNode` + `setBillboardPointEye()` 做 3D `?`/`√` 公告牌；
+  `setDepthTest(False)`、固定 bin、阴影；`setShadow` 只接受两个偏移参数，不能传颜色。
+  标记按 `slot_for(day, kind)` 重建，从 `MinigameState.completed` 派生符号；
+  标记高度需避开 HUD，形状站点最终放在桌面 `z≈0.75`。
+- **SmartScreen**：未签名 PyInstaller exe 无法从程序侧消除提示；启动器递归
+  `Unblock-File` 整个目录，构建脚本支持 `QIQI_SIGN_CERT`/`QIQI_SIGN_PASSWORD` 可选签名。
+
 ## 待验证
 
 1. 实际鼠标点击、右键拖动、滚轮在普通窗口下的手感与边界。
